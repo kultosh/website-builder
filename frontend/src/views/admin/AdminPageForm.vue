@@ -7,56 +7,92 @@
         {{ pageId ? "Edit Page" : "Add Page" }}
       </div>
       <div class="card-body">
-        <!-- <form @submit.prevent="savePage"> -->
-          <div class="row mb-3">
-            <div class="col-md-6">
+        <form @submit.prevent="handleSavePage">
+          <div class="row">
+            <div class="col-md-6 mb-3">
                 <label for="page-type" class="form-label">Make Parent</label>
-                <select class="form-select" aria-label="Default select example">
-                    <option value="1">Yes</option>
-                    <option value="0" selected>No</option>
+                <select v-model="form.is_parent" class="form-select" aria-label="Default select example">
+                    <option
+                      v-for="option in yesNoOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
                 </select>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 mb-3" v-if="!form.is_parent">
+                <label for="page-type" class="form-label">Parent Page</label>
+                <select v-model="form.parent_id" class="form-select">
+                  <option
+                    v-for="page in parentPages"
+                    :key="page.id"
+                    :value="page.id"
+                  >
+                    {{ page.title }}
+                  </option>
+                </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
                 <label for="page-type" class="form-label">Page Type</label>
-                <select class="form-select" aria-label="Default select example">
-                    <option value="standard" selected>Standard</option>
-                    <option value="contact">Contact</option>
+                <select v-model="form.page_type" class="form-select">
+                  <option
+                    v-for="option in pageTypeOptions"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+                </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="page-title" class="form-label">Title</label>
+                <input v-model="form.title" class="form-control" id="page-title" type="text" placeholder="Enter Title" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="page-title" class="form-label">Order Number</label>
+                <input v-model="form.order" class="form-control" id="page-title" type="number" min="1" placeholder="Enter Page Order Number" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="page-meta-title" class="form-label">Meta Title</label>
+                <input v-model="form.meta_title" class="form-control" id="page-meta-title" type="text" placeholder="Enter Title" />
+            </div>
+
+            <div :class="'mb-3 '+(form.is_parent ? 'col-md-6' : 'col-md-12')">
+                <label for="page-meta-description" class="form-label">Meta Description</label>
+                <textarea v-model="form.meta_description" class="form-control" id="page-meta-description"></textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="page-type" class="form-label">Add To Menu</label>
+                <select v-model="form.add_to_menu" class="form-select" aria-label="Default select example">
+                    <option
+                      v-for="option in yesNoOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="page-type" class="form-label">Add To Home</label>
+                <select v-model="form.add_to_home" class="form-select" aria-label="Default select example">
+                    <option
+                      v-for="option in yesNoOptions"
+                      :key="option.value"
+                      :value="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
                 </select>
             </div>
           </div>
-          <div class="row mb-3">
-              <div class="col-md-6">
-                  <label for="page-title" class="form-label">Title</label>
-                  <input class="form-control" id="page-title" type="text" placeholder="Enter Title" />
-              </div>
-              <div class="col-md-6">
-                  <label for="page-meta-title" class="form-label">Meta Title</label>
-                  <input class="form-control" id="page-meta-title" type="text" placeholder="Enter Title" />
-              </div>
-          </div>
-            <div class="row mb-3">
-              <div class="col-md-12">
-                  <label for="page-meta-description" class="form-label">Meta Description</label>
-                  <textarea class="form-control" id="page-meta-description"></textarea>
-              </div>
-          </div>
-          <div class="row mb-3">
-              <div class="col-md-6">
-                  <label for="page-type" class="form-label">Add To Menu</label>
-                  <select class="form-select" aria-label="Default select example">
-                      <option value="1">Yes</option>
-                      <option value="0" selected>No</option>
-                  </select>
-              </div>
-              <div class="col-md-6">
-                  <label for="page-type" class="form-label">Add To Home</label>
-                  <select class="form-select" aria-label="Default select example">
-                      <option value="1">Yes</option>
-                      <option value="0" selected>No</option>
-                  </select>
-              </div>
-          </div>
-          <div class="row mb-3">
+
+          <div class="row mb-3" v-if="!form.is_parent">
               <div class="d-flex justify-content-md-end mb-3">
                   <button class="btn btn-primary btn-sm" @click="addSection">Add Section</button>
               </div>
@@ -132,13 +168,13 @@
               </div>
           </div>
           <div class="form-check mb-3">
-              <input class="form-check-input" id="page-status" type="checkbox" checked />
+              <input v-model="form.status" class="form-check-input" id="page-status" type="checkbox" checked />
               <label class="form-check-label" for="page-status">Active</label>
           </div>
           <div class="d-grid justify-content-md-end">
               <button type="submit" class="btn btn-primary">{{ pageId ? "Update" : "Save" }}</button>
           </div>
-        <!-- </form> -->
+        </form>
       </div>
     </div>
   </div>
@@ -148,6 +184,7 @@
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
 import CKEditor from '@ckeditor/ckeditor5-vue'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { savePage, getParentPages } from '@/services/page';
 
 export default {
     components: {
@@ -162,6 +199,29 @@ export default {
               { name: "Admin", path: "/admin" },
               { name: "Pages", path: "/admin/pages" },
           ],
+          // Form Fields
+          form: {
+            parent_id: null,
+            title: 'Running',
+            meta_title: '',
+            meta_description: '',
+            order: 1,
+            is_parent: 0,
+            page_type: 'standard',
+            add_to_menu: 0,
+            add_to_home: 0,
+            status: true
+          },
+          parentPages: [],
+          yesNoOptions: [
+              { label: 'Yes', value: 1 },
+              { label: 'No', value: 0 }
+          ],
+          pageTypeOptions: [
+              { label: 'Standard', value: 'standard' },
+              { label: 'Contact', value: 'contact' }
+          ],
+          // Add New Section
           sections: [
             {
               id: 1,
@@ -170,6 +230,7 @@ export default {
               content: ""
             }
           ],
+          // start ckeditor settings
           editor: ClassicEditor,
           editorData: '',
           editorConfig: {
@@ -190,7 +251,12 @@ export default {
               "redo",
             ],
           },
+          // end ckeditor settings
         };
+    },
+    
+    mounted() {
+      this.fetchParentPages();
     },
 
     methods: {
@@ -222,8 +288,54 @@ export default {
         if (confirm("Are you sure you want to remove this section?")) {
           this.sections.splice(index, 1);
         }
+      },
+      async fetchParentPages() {
+        try {
+          const response = await getParentPages();
+          this.parentPages = response.data;
+        } catch (error) {
+          console.error("Failed to load parent pages", error);
+        }
+      },
+      handleSavePage() {
+        const formData = new FormData();
+
+        // Append static fields
+        formData.append('parent_id', this.form.parent_id);
+        formData.append('title', this.form.title);
+        formData.append('meta_title', this.form.meta_title);
+        formData.append('meta_description', this.form.meta_description);
+        formData.append('order', this.form.order);
+        formData.append('is_parent', this.form.is_parent);
+        formData.append('page_type', this.form.page_type);
+        formData.append('add_to_menu', this.form.add_to_menu);
+        formData.append('add_to_home', this.form.add_to_home);
+        formData.append('status', this.form.status ? 1 : 0);
+
+        // Append dynamic sections
+        this.sections.forEach((section, index) => {
+          formData.append(`sections[${index}][layout]`, section.layout);
+          formData.append(`sections[${index}][content]`, section.content);
+          if (section.image) {
+            formData.append(`sections[${index}][image]`, section.image);
+          }
+        });
+
+        // Debug contents of formData
+        for (let [key, value] of formData.entries()) {
+          console.log(`${key}:`, value);
+        }
+
+        savePage(formData)
+        .then(() => {
+          console.log('test');
+          // this.$router.push('/admin/pages');
+        })
+        .catch(err => {
+          console.error('Failed to save page:', err);
+        });
       }
-    }
+    },
 };
 </script>
 
