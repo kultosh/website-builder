@@ -1,26 +1,49 @@
 import Vue from "vue";
 import Router from "vue-router";
+import { isAuthenticated } from "@/services/auth";
 
-// Admin Layout and Views
 import AdminLayout from "@/layouts/AdminLayout.vue";
 import Dashboard from "@/views/admin/AdminDashboard.vue";
 import Pages from "@/views/admin/AdminPages.vue";
 import PageForm from "@/views/admin/AdminPageForm.vue";
+import AdminLogin from "@/views/admin/auth/AdminLogin.vue";
 
 Vue.use(Router);
 
-export default new Router({
+const router = new Router({
   mode: "history",
   routes: [
-    // Admin Routes
+    {
+      path: "/login",
+      component: AdminLogin
+    },
     {
       path: "/admin",
       component: AdminLayout,
+      meta: { requiresAuth: true },
       children: [
         { path: "", component: Dashboard },
         { path: "pages", component: Pages },
-        { path: "pages/new", component: PageForm },
-      ],
+        { path: "pages/new", component: PageForm }
+      ]
     },
-  ],
+    { path: "*", redirect: "/login" }, // Redirect to Login page if not authorised
+  ]
 });
+
+// Global Guard
+router.beforeEach((to, from, next) => {
+  const loggedIn = isAuthenticated();
+
+  if (to.matched.some(record => record.meta.requiresAuth) && !loggedIn) {
+    return next('/login');
+  }
+
+  if (to.path === '/login' && loggedIn) {
+    return next('/admin');
+  }
+
+  next();
+});
+
+export default router;

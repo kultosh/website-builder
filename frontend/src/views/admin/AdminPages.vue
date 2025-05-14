@@ -32,7 +32,7 @@ export default {
         return {
         pages: [],
         breadcrumb: [
-            { name: "Dashboard", path: "/admin" },
+            { name: "Admin", path: "/admin" },
         ],
         };
     },

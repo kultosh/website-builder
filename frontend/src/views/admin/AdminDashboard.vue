@@ -12,7 +12,11 @@ export default {
         Breadcrumb,
     },
     data() {
-        return {}
+        return {
+            breadcrumb: [
+                { name: "Admin", path: "/admin" },
+            ],
+        }
     },
 };
 </script>

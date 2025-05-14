@@ -152,7 +152,7 @@ export default {
           pageId: this.$route.params.id || null,
           title: "",
           breadcrumb: [
-              { name: "Dashboard", path: "/admin" },
+              { name: "Admin", path: "/admin" },
               { name: "Pages", path: "/admin/pages" },
           ],
           sections: [
