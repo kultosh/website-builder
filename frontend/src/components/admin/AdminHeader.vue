@@ -22,15 +22,35 @@
           <i class="fas fa-user fa-fw"></i>
         </a>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-          <li><router-link to="/admin/settings" class="dropdown-item">Settings</router-link></li>
-          <li><router-link to="/admin/activity-log" class="dropdown-item">Activity Log</router-link></li>
+          <li><router-link to="" class="dropdown-item">Settings</router-link></li>
           <li><hr class="dropdown-divider" /></li>
-          <li><router-link to="/" class="dropdown-item">Logout</router-link></li>
+          <li><button class="dropdown-item" @click="handleLogout">Logout</button></li>
         </ul>
       </li>
     </ul>
   </nav>
 </template>
+
+<script>
+import { logout } from '@/services/auth';
+
+export default {
+  data() {
+    return {};
+  },
+  methods: {
+    handleLogout() {
+      logout()
+        .then(() => this.$router.push('/login'))
+        .catch(() => {
+          localStorage.removeItem('auth_token');
+          this.$router.push('/login');
+        });
+    }
+  }
+};
+</script>
+
 
 <style scoped>
 .sb-topnav .navbar-brand {
