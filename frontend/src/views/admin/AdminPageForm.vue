@@ -119,7 +119,11 @@
                         </div>
                         <div class="col-md-12">
                           <label class="form-label">Content</label>
-                          <textarea class="form-control" cols="30" rows="10"></textarea>
+                          <ckeditor
+                            :editor="editor"
+                            v-model="section.content"
+                            :config="editorConfig"
+                          />
                         </div>
                       </div>
                     </div>
@@ -142,10 +146,13 @@
 
 <script>
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
+import CKEditor from '@ckeditor/ckeditor5-vue'
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 export default {
     components: {
         Breadcrumb,
+        ckeditor: CKEditor.component
     },
     data() {
         return {
@@ -162,7 +169,27 @@ export default {
               image: null,
               content: ""
             }
-          ]
+          ],
+          editor: ClassicEditor,
+          editorData: '',
+          editorConfig: {
+            toolbar: [
+              "heading",
+              "|",
+              "bold",
+              "italic",
+              "link",
+              "bulletedList",
+              "numberedList",
+              "|",
+              "blockQuote",
+              "insertTable",
+              "mediaEmbed",
+              "|",
+              "undo",
+              "redo",
+            ],
+          },
         };
     },
 
@@ -203,5 +230,9 @@ export default {
 <style scoped>
   .card-header {
     background-color: #f8f9fa;
+  }
+  /* Set the height of the CKEditor content area */
+  ::v-deep(.ck-editor__editable) {
+    min-height: 300px !important;
   }
 </style>
