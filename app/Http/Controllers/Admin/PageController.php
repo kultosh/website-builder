@@ -8,7 +8,9 @@ use App\Models\Page;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\File;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 class PageController extends Controller
 {
     public function index()
@@ -47,28 +49,46 @@ class PageController extends Controller
 
     private function createPageSections($requestData, $page)
     {
+        $manager = new ImageManager(new GdDriver());
         foreach ($requestData->sections as $index => $sectionData) {
             $mediaId = null;
 
             if ($requestData->hasFile("sections.$index.image")) {
-                $uploadedFile = $requestData->file("sections.$index.image");
+                $imageFile = $requestData->file("sections.$index.image");
+                $originalName = $imageFile->getClientOriginalName();
+                $mimeType = $imageFile->getClientMimeType();
 
-                // Store the image
-                $path = $uploadedFile->store('sections', 'public');
+                $filename = uniqid('section_') . '.' . $imageFile->getClientOriginalExtension();
+                $thumbFilename = 'thumb_' . $filename;
 
-                // Save metadata in the medias table
+                $imageDir = storage_path('app/public/sections');
+                $thumbDir = $imageDir . '/thumbnails';
+
+                // Ensure directories exist
+                File::ensureDirectoryExists($imageDir);
+                File::ensureDirectoryExists($thumbDir);
+
+                // Save original image
+                $image = $manager->read($imageFile->getPathname());
+                $image->save($imageDir . '/' . $filename);
+
+                // Save thumbnail (e.g., 300x200)
+                $thumbnail = $image->scale(width: 300, height: 200);
+                $thumbnail->save($thumbDir . '/' . $thumbFilename);
+
+                // Save to Media table
                 $media = Media::create([
-                    'name' => $uploadedFile->getClientOriginalName(),
-                    'mime_type' => $uploadedFile->getClientMimeType(),
-                    'path' => $path,
-                    'thumbnail_path' => null, // Optional: generate if needed
-                    'alt_text' => '',         // Optional: extend your form if needed
+                    'name' => $originalName,
+                    'mime_type' => $mimeType,
+                    'path' => 'sections/' . $filename,
+                    'thumbnail_path' => 'sections/thumbnails/' . $thumbFilename,
+                    'alt_text' => $sectionData['alt_text'] ?? null,
                 ]);
 
                 $mediaId = $media->id;
             }
 
-
+            // Save section
             $page->sections()->create([
                 'layout_type' => $sectionData['layout'],
                 'description' => $sectionData['content'],
