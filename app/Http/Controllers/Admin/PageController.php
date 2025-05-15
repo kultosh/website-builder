@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Media;
+use App\Models\Page;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+class PageController extends Controller
+{
+    public function index()
+    {
+        return response('index');
+    }
+
+    public function store(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+                $page = Page::create([
+                'parent_id' => $request->parent_id === 'null' ? null : (int) $request->parent_id,
+                'title' => $request->title,
+                'meta_title' => $request->meta_title,
+                'meta_description' => $request->meta_description,
+                'page_type' => $request->page_type,
+                'order' => $request->order,
+                'is_parent' => $request->is_parent,
+                'is_menu' => $request->add_to_menu,
+                'add_to_home' => $request->add_to_home,
+                'status' => $request->status,
+            ]);
+
+            if(!$request->is_parent) {
+                $this->createPageSections($request, $page);
+            }
+            DB::commit();
+            return response()->json(['message' => 'Page created successfully.']);
+        } catch (Exception $error) {
+            DB::rollback();
+            \Log::info(['pageError' => $error->getMessage()]);
+            return response()->json(['message' => $error->getMessage()]);
+        }
+    }
+
+    private function createPageSections($requestData, $page)
+    {
+        $manager = new ImageManager(new GdDriver());
+        foreach ($requestData->sections as $index => $sectionData) {
+            $mediaId = null;
+
+            if ($requestData->hasFile("sections.$index.image")) {
+                $imageFile = $requestData->file("sections.$index.image");
+                $originalName = $imageFile->getClientOriginalName();
+                $mimeType = $imageFile->getClientMimeType();
+
+                $filename = uniqid('section_') . '.' . $imageFile->getClientOriginalExtension();
+                $thumbFilename = 'thumb_' . $filename;
+
+                $imageDir = storage_path('app/public/sections');
+                $thumbDir = $imageDir . '/thumbnails';
+
+                // Ensure directories exist
+                File::ensureDirectoryExists($imageDir);
+                File::ensureDirectoryExists($thumbDir);
+
+                // Save original image
+                $image = $manager->read($imageFile->getPathname());
+                $image->save($imageDir . '/' . $filename);
+
+                // Save thumbnail (e.g., 300x200)
+                $thumbnail = $image->scale(width: 300, height: 200);
+                $thumbnail->save($thumbDir . '/' . $thumbFilename);
+
+                // Save to Media table
+                $media = Media::create([
+                    'name' => $originalName,
+                    'mime_type' => $mimeType,
+                    'path' => 'sections/' . $filename,
+                    'thumbnail_path' => 'sections/thumbnails/' . $thumbFilename,
+                    'alt_text' => $sectionData['alt_text'] ?? null,
+                ]);
+
+                $mediaId = $media->id;
+            }
+
+            // Save section
+            $page->sections()->create([
+                'layout_type' => $sectionData['layout'],
+                'description' => $sectionData['content'],
+                'media_id' => $mediaId,
+            ]);
+        }
+    }
+
+    public function parentPages()
+    {
+        $parents = Page::where('is_parent', 1)->select('id', 'title')->get();
+        return response()->json($parents);
+    }
+}
