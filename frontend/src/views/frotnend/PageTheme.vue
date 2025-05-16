@@ -29,9 +29,7 @@ export default {
 
     data() {
         return {
-            breadcrumb: [
-                { name: "Home", path: "/" },
-            ],
+            breadcrumb: [],
             page: {},
             sectionList: []
         }
@@ -42,6 +40,7 @@ export default {
             await getPageBySlug(this.slug)
             .then((response) => {
                 const data = response.data.content;
+                this.updateBreadcrumb(data);
                 if(data.sections) {
                     this.sectionList = data.sections;
                 }
@@ -51,6 +50,16 @@ export default {
                 console.error('Page not found', err);
                 this.$router.replace('/');
             });
+        },
+        updateBreadcrumb(data) {
+            this.breadcrumb = [
+                { name: "Home", path: "/" },
+            ];
+            if(!data.is_parent && data.parent_title != null) {
+                this.breadcrumb.push(
+                    {name: data.parent_title, path: '/'+data.parent_slug}
+                );
+            }
         }
     },
 

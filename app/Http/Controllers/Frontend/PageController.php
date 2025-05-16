@@ -15,13 +15,15 @@ class PageController extends Controller
     public function showPage($slug)
     {
         try {
-            $page = Page::select('id', 'title', 'slug', 'is_parent')->where('slug', $slug)->with(['sections:id,page_id,layout_type,description,media_id','sections.media:id,path,alt_text'])->firstOrFail();
+            $page = Page::select('id', 'title', 'slug', 'is_parent', 'parent_id')->where('slug', $slug)->with(['sections:id,page_id,layout_type,description,media_id','sections.media:id,path,alt_text','parent:id,title,slug'])->firstOrFail();
 
             $data = [];
             $data['id'] = $page->id;
             $data['title'] = $page->title;
             $data['slug'] = $page->slug;
             $data['is_parent'] = $page->is_parent;
+            $data['parent_title'] = $page->parent->title ?? null;
+            $data['parent_slug'] = $page->parent->slug ?? null;
 
             foreach($page->sections as $section) {
                 $data['sections'][] = [

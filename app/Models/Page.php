@@ -30,6 +30,11 @@ class Page extends Model
         return $this->hasMany(PageSections::class);
     }
 
+    public function parent()
+    {
+        return $this->hasOne(Page::class, 'id', 'parent_id');
+    }
+
     public function children()
     {
         return $this->hasMany(Page::class, 'parent_id');
