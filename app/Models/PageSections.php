@@ -11,4 +11,10 @@ class PageSections extends Model
     public function page() {
         return $this->belongsTo(Page::class);
     }
+
+    public function media()
+    {
+        return $this->hasOne(Media::class, 'id', 'media_id');
+    }
+
 }
