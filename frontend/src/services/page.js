@@ -3,6 +3,7 @@ import axios from 'axios';
 const API_URL = process.env.VUE_APP_ROOT_API;
 const AUTH_HEADER = {
   headers: {
+    Accept: 'application/json',
     Authorization: `Bearer ${localStorage.getItem('auth_token')}`
   }
 };
