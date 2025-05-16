@@ -13,45 +13,107 @@
       >
         <span class="navbar-toggler-icon"></span>
       </button>
+
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <router-link :to="`/`" class="nav-link active">
-                Home
+            <router-link
+              :to="`/`"
+              class="nav-link"
+              :class="{ active: $route.path === '/' }"
+            >
+              Home
             </router-link>
+
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
-          </li>
-          <li class="nav-item dropdown">
+          
+          <li
+            v-for="page in parentMenuPages"
+            :key="'parent-' + page.id"
+            class="nav-item dropdown"
+            :class="{ active: isParentActive(page) }"
+          >
             <a
               class="nav-link dropdown-toggle"
               href="#"
-              id="navbarDropdown"
+              :id="`dropdown-${page.id}`"
               role="button"
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              Dropdown
+              {{ page.title }}
             </a>
-            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <li><a class="dropdown-item" href="#">Action</a></li>
-              <li><a class="dropdown-item" href="#">Another action</a></li>
-              <li><hr class="dropdown-divider" /></li>
-              <li><a class="dropdown-item" href="#">Something else here</a></li>
+            <ul class="dropdown-menu" :aria-labelledby="`dropdown-${page.id}`">
+              <li
+                v-for="child in page.children"
+                :key="'child-' + child.id"
+              >
+                <router-link
+                  class="dropdown-item"
+                  :to="`/${child.slug}`"
+                  active-class="active"
+                >
+                  {{ child.title }}
+                </router-link>
+              </li>
             </ul>
           </li>
-          <li class="nav-item">
-            <a
-              class="nav-link disabled"
-              href="#"
-              tabindex="-1"
-              aria-disabled="true"
-              >Disabled</a
-            >
+          <li
+            v-for="page in singleMenuPages"
+            :key="'single-' + page.id"
+            class="nav-item"
+          >
+            <router-link :to="`/${page.slug}`" class="nav-link" active-class="active">
+              {{ page.title }}
+            </router-link>
           </li>
         </ul>
       </div>
     </div>
   </nav>
 </template>
+
+
+<script>
+import { getMenuPages } from "@/services/frontendApi";
+
+export default {
+  data() {
+    return {
+      menuPages: [],
+    };
+  },
+  mounted() {
+    this.fetchMenuPages();
+  },
+  computed: {
+    parentMenuPages() {
+      return this.menuPages.filter(p => p.children && p.children.length);
+    },
+    singleMenuPages() {
+      return this.menuPages.filter(p => !p.children || !p.children.length);
+    },
+  },
+  methods: {
+    async fetchMenuPages() {
+      try {
+        const response = await getMenuPages();
+        this.menuPages = response.data.content;
+      } catch (err) {
+        console.error("Failed to load menu pages", err);
+      }
+    },
+    isParentActive(parentPage) {
+      const currentPath = this.$route.path;
+      return parentPage.children.some(child => `/${child.slug}` === currentPath);
+    }
+  }
+};
+</script>
+
+<style scoped>
+.navbar .nav-item.active > .nav-link {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 0.25rem;
+}
+</style>

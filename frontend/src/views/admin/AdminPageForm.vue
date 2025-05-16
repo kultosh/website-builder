@@ -292,7 +292,7 @@ export default {
       async fetchParentPages() {
         try {
           const response = await getParentPages();
-          this.parentPages = response.data;
+          this.parentPages = response.data.content;
         } catch (error) {
           console.error("Failed to load parent pages", error);
         }

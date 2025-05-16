@@ -18,3 +18,7 @@ export function getChildPages(id) {
 export function getHomePageSectionData() {
     return axios.get(`${API_URL}/home`, API_HEADER);
 }
+
+export function getMenuPages() {
+    return axios.get(`${API_URL}/menu/pages`);
+}

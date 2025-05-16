@@ -23,5 +23,6 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::get('/home', [FrontendPageController::class, 'getHomePageSections']);
+Route::get('/menu/pages', [FrontendPageController::class, 'getMenuPages']);
 Route::get('/parent/{id}/childs', [FrontendPageController::class, 'getChildPages']);
 Route::get('/{slug}', [FrontendPageController::class, 'showPage'])->where('slug', '.*');
