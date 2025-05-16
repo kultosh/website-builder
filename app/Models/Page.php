@@ -29,4 +29,9 @@ class Page extends Model
     public function sections() {
         return $this->hasMany(PageSections::class);
     }
+
+    public function children()
+    {
+        return $this->hasMany(Page::class, 'parent_id');
+    }
 }

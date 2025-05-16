@@ -122,4 +122,34 @@ class PageController extends Controller
             'image_alt_text' => $media->alt_text ?? null,
         ];
     }
+
+    public function getMenuPages()
+    {
+        try {
+            $menuPages = Page::select('id', 'title', 'slug')
+                ->where('is_menu', true)
+                ->whereNull('parent_id')
+                ->orderBy('order', 'asc')
+                ->with(['children' => function ($q) {
+                    $q->select('id', 'title', 'slug', 'parent_id')
+                    ->where('is_menu', true)
+                    ->orderBy('order', 'asc');
+                }])
+                ->get();
+
+            return response()->json([
+                'code' => 200,
+                'status' => 'success',
+                'message' => 'Menu pages fetched successfully.',
+                'content' => $menuPages
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => 500,
+                'status' => 'error',
+                'message' => 'Something went wrong.',
+                'content' => $e->getMessage()
+            ]);
+        }
+    }
 }
