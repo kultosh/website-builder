@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Frontend\PageController as FrontendPageController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -20,3 +21,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::get('/parent/pages', [PageController::class, 'parentPages']);
 });
+
+Route::get('/home', [FrontendPageController::class, 'getHomePageSections']);
+Route::get('/parent/{id}/childs', [FrontendPageController::class, 'getChildPages']);
+Route::get('/{slug}', [FrontendPageController::class, 'showPage'])->where('slug', '.*');

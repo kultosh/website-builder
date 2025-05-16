@@ -94,7 +94,7 @@
 
           <div class="row mb-3" v-if="!form.is_parent">
               <div class="d-flex justify-content-md-end mb-3">
-                  <button class="btn btn-primary btn-sm" @click="addSection">Add Section</button>
+                  <button type="button" class="btn btn-primary btn-sm" @click="addSection">Add Section</button>
               </div>
               <!-- Section: Accordion -->
               <div class="accordion" id="accordionPanelsStayOpenExample">
@@ -321,18 +321,18 @@ export default {
           }
         });
 
-        // Debug contents of formData
-        for (let [key, value] of formData.entries()) {
-          console.log(`${key}:`, value);
-        }
-
         savePage(formData)
-        .then(() => {
-          console.log('test');
-          // this.$router.push('/admin/pages');
+        .then((response) => {
+          console.log('response>>', response.status);
+          if(response.data.code == 200) {
+            this.$router.push('/admin/pages');
+          } else {
+            alert(response.data.message);
+          }
         })
         .catch(err => {
           console.error('Failed to save page:', err);
+          alert(err);
         });
       }
     },

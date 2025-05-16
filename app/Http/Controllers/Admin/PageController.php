@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Page;
+use App\Traits\RequestResponseTrait;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,8 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 class PageController extends Controller
 {
+    use RequestResponseTrait;
+    
     public function index()
     {
         return response('index');
@@ -39,11 +42,12 @@ class PageController extends Controller
                 $this->createPageSections($request, $page);
             }
             DB::commit();
-            return response()->json(['message' => 'Page created successfully.']);
+
+            $responseMessage = 'Page created successfully.';
+            return $this->successJsonResponse($responseMessage);
         } catch (Exception $error) {
             DB::rollback();
-            \Log::info(['pageError' => $error->getMessage()]);
-            return response()->json(['message' => $error->getMessage()]);
+            return $this->exceptionJsonResponse($error);
         }
     }
 
@@ -99,7 +103,13 @@ class PageController extends Controller
 
     public function parentPages()
     {
-        $parents = Page::where('is_parent', 1)->select('id', 'title')->get();
-        return response()->json($parents);
+        try {
+            $parents = Page::where('is_parent', 1)->select('id', 'title')->get();
+
+            $responseMessage = 'Parent page list loaded successfully.';
+            return $this->successJsonResponse($responseMessage,$parents);
+        } catch (Exception $error) {
+            return $this->exceptionJsonResponse($error);
+        }
     }
 }

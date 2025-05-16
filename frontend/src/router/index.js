@@ -8,6 +8,10 @@ import Pages from "@/views/admin/AdminPages.vue";
 import PageForm from "@/views/admin/AdminPageForm.vue";
 import AdminLogin from "@/views/admin/auth/AdminLogin.vue";
 
+import FrontendLayout from "@/layouts/FrontendLayout.vue";
+import HomePage from "@/views/frotnend/HomePage.vue";
+import PageTheme from "@/views/frotnend/PageTheme.vue";
+
 Vue.use(Router);
 
 const router = new Router({
@@ -25,6 +29,16 @@ const router = new Router({
         { path: "", component: Dashboard },
         { path: "pages", component: Pages },
         { path: "pages/new", component: PageForm }
+      ]
+    },
+    {
+      path: "/",
+      component: FrontendLayout,
+      meta: { requiresAuth: false },
+      children: [
+        { path: "", component: HomePage },
+        // { path: "theme", component: PageTheme },
+        { path: ":slug", component: PageTheme, props: true } 
       ]
     },
     { path: "*", redirect: "/login" }, // Redirect to Login page if not authorised
