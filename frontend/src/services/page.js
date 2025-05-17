@@ -20,8 +20,8 @@ export function getPage(id) {
   return axios.get(`${API_URL}/pages/${id}`, AUTH_HEADER);
 }
 
-export function getAllPages() {
-  return axios.get(`${API_URL}/pages`, AUTH_HEADER);
+export function getAllPages(page) {
+  return axios.get(`${API_URL}/pages?page=${page}`, AUTH_HEADER);
 }
 
 export function deletePage(id) {

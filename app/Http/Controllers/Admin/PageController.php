@@ -16,9 +16,16 @@ class PageController extends Controller
 {
     use RequestResponseTrait;
     
-    public function index()
+    public function index(Request $request)
     {
-        return response('index');
+        try {
+            $perPage = $request->get('per_page', 5);
+            $pageList = Page::withCount('sections')->orderBy('created_at', 'desc')->paginate($perPage);
+            $responseMessage = 'Page loaded successfully.';
+            return $this->successJsonResponse($responseMessage,$pageList);
+        } catch (Exception $error) {
+            return $this->exceptionJsonResponse($error);
+        }
     }
 
     public function store(Request $request)
