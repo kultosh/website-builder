@@ -7,7 +7,7 @@
         {{ pageId ? "Edit Page" : "Add Page" }}
       </div>
       <div class="card-body">
-        <form @submit.prevent="handleSavePage">
+        <form @submit.prevent="handleSaveOrUpdatePage">
           <div class="row">
             <div class="col-md-6 mb-3">
                 <label for="page-type" class="form-label">Make Parent</label>
@@ -97,7 +97,7 @@
                   <button type="button" class="btn btn-primary btn-sm" @click="addNewSection">Add Section</button>
               </div>
               <!-- Section: Accordion -->
-              <AdminPageSection ref="sectionComponent" />
+              <AdminPageSection ref="sectionComponent" :sectionList="sectionList" />
           </div>
           <div class="form-check mb-3">
               <input v-model="form.status" class="form-check-input" id="page-status" type="checkbox" checked />
@@ -115,7 +115,7 @@
 <script>
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
 import AdminPageSection from '../../components/admin/AdminPageSection.vue';
-import { savePage, getParentPages } from '@/services/page';
+import { savePage, getParentPages, getPage, updatePage } from '@/services/page';
 
 export default {
     components: {
@@ -133,7 +133,7 @@ export default {
           // Form Fields
           form: {
             parent_id: null,
-            title: 'Running',
+            title: '',
             meta_title: '',
             meta_description: '',
             order: 1,
@@ -143,6 +143,7 @@ export default {
             add_to_home: 0,
             status: true
           },
+          sectionList: [],
           parentPages: [],
           yesNoOptions: [
               { label: 'Yes', value: 1 },
@@ -156,6 +157,9 @@ export default {
     },
     mounted() {
       this.fetchParentPages();
+      if(this.pageId!=null) {
+        this.editPage(this.pageId)
+      }
     },
 
     methods: {
@@ -170,10 +174,33 @@ export default {
       addNewSection() {
         this.$refs.sectionComponent.addSection();
       },
-      handleSavePage() {
+      editPage(params) {
+        getPage(params)
+        .then((response) => {
+          if(response.data.code==200) {
+            const data = response.data.content;
+            console.log('data>>', data);
+            this.form.parent_id = data.parent_id;
+            this.form.title = data.title;
+            this.form.meta_title = data.meta_title;
+            this.form.meta_description = data.meta_description;
+            this.form.order = data.order;
+            this.form.is_parent = data.is_parent;
+            this.form.page_type = data.page_type;
+            this.form.add_to_menu = data.is_menu;
+            this.form.add_to_home = data.add_to_home;
+            this.form.status = data.status;
+            this.sectionList = data.sections
+          }
+          
+        })
+        .catch((e) => {
+          console.log('Something Wrong!', e);
+        })
+      },
+      handleSaveOrUpdatePage() {
         const sectionComponent = this.$refs.sectionComponent;
         const sections = sectionComponent.getSections();
-
         const formData = new FormData();
 
         // Append static fields
@@ -190,26 +217,46 @@ export default {
 
         // Append dynamic sections
         sections.forEach((section, index) => {
-          formData.append(`sections[${index}][layout]`, section.layout);
-          formData.append(`sections[${index}][content]`, section.content);
-          if (section.image) {
-            formData.append(`sections[${index}][image]`, section.image);
-          }
+            formData.append(`sections[${index}][id]`, section.id);
+            formData.append(`sections[${index}][layout]`, section.layout);
+            formData.append(`sections[${index}][content]`, section.content);
+
+            if (section.image) {
+                formData.append(`sections[${index}][image]`, section.image);
+            } else if (section.media_id) {
+                formData.append(`sections[${index}][media_id]`, section.media_id);
+            }
         });
 
-        savePage(formData)
-        .then((response) => {
-          if(response.data.code == 200) {
-            this.$router.push('/admin/pages');
-          } else {
-            alert(response.data.message);
-          }
-        })
-        .catch(err => {
-          console.error('Failed to save page:', err);
-          alert(err);
-        });
-      }
+        if (this.pageId) {
+            updatePage(this.pageId, formData)
+            .then((response) => {
+                if (response.data.code == 200) {
+                    this.$router.push('/admin/pages');
+                } else {
+                    alert(response.data.message);
+                }
+            })
+            .catch(err => {
+                console.error('Failed to update page:', err);
+                alert(err);
+            });
+        } else {
+            savePage(formData)
+            .then((response) => {
+                if (response.data.code == 200) {
+                    this.$router.push('/admin/pages');
+                } else {
+                    alert(response.data.message);
+                }
+            })
+            .catch(err => {
+                console.error('Failed to save page:', err);
+                alert(err);
+            });
+        }
+    }
+
     },
 };
 </script>

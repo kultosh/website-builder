@@ -13,6 +13,7 @@ export function savePage(formData) {
 }
 
 export function updatePage(id, formData) {
+  formData.append('_method', 'PUT');
   return axios.post(`${API_URL}/pages/${id}`, formData, AUTH_HEADER);
 }
 
