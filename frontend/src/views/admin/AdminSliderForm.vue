@@ -47,7 +47,7 @@
                     <input v-model="form.order" class="form-control" id="slider-order" type="number" min="1" placeholder="Enter Slider Order Number" />
                 </div>
 
-                <div class="form-check mb-3">
+                <div class="col-md-6 form-check mb-3">
                     <input v-model="form.status" class="form-check-input" id="slider-status" type="checkbox" checked />
                     <label class="form-check-label" for="slider-status">Active</label>
                 </div>

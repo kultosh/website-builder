@@ -19,9 +19,9 @@ class SliderController extends Controller
     {
         try {
             $perPage = $request->get('per_page', 5);
-            $pageList = Slider::with('media')->orderBy('created_at', 'desc')->paginate($perPage);
+            $sliderList = Slider::with('media')->orderBy('created_at', 'desc')->paginate($perPage);
             $responseMessage = 'Slider loaded successfully.';
-            return $this->successJsonResponse($responseMessage,$pageList);
+            return $this->successJsonResponse($responseMessage,$sliderList);
         } catch (Exception $error) {
             return $this->exceptionJsonResponse($error);
         }

@@ -12,7 +12,7 @@ class Slider extends Model
         'caption',
         'url',
         'order',
-        'is_active'
+        'status',
     ];
 
     public function media()

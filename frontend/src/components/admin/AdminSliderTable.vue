@@ -10,10 +10,10 @@
         <tr v-for="(slider,index) in sliders" :key="slider.id">
           <td>{{ index + 1 + (pagination.current_page - 1) * pagination.per_page }}</td>
           <td>{{ slider.title }}</td>
-          <td>{{ slider.caption }}</td>
+          <td>{{ limitText(slider.caption) }}</td>
           <td>{{ slider.url }}</td>
           <td>{{ slider.order }}</td>
-          <td>{{ slider.media_id }}</td>
+          <td><img :src="getImageUrl(slider.media.path)" class="d-block w-100" :alt="slider.media.alt_text" /></td>
           <td>{{ toActiveInactive(slider.status) }}</td>
           <td>{{ formatDate(slider.created_at) }}</td>
           <td>
@@ -75,8 +75,8 @@ export default {
         { label: 'Caption' },
         { label: 'URL' },
         { label: 'Order' },
-        { label: 'Status' },
         { label: 'Image' },
+        { label: 'Status' },
         { label: 'Created At' },
         { label: 'Actions'}
       ],
@@ -103,6 +103,18 @@ export default {
     },
     toActiveInactive(value) {
       return value ? 'Active' : 'Inactive';
+    },
+    limitText(params) {
+      const maxLength = 20;
+      if (params.length > maxLength) {
+         return params.slice(0, maxLength) + '...';
+      } else {
+        return params;
+      }
+    },
+    getImageUrl(path) {
+        const baseUrl = process.env.VUE_APP_ASSET_BASE_URL;
+        return `${baseUrl}/storage/${path}`;
     },
     deleteCurrentSlider(id) {
       const confirmed = confirm('Are you sure?');
