@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('sliders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('media_id')->constrained('medias')->cascadeOnDelete();
+            $table->foreignId('media_id')->nullable()->constrained('medias')->nullOnDelete();
             $table->string('title');
             $table->text('caption')->nullable();
             $table->string('url')->nullable();
