@@ -10,7 +10,7 @@
         <form @submit.prevent="handleSaveOrUpdatePage">
           <div class="row">
             <div class="col-md-6 mb-3">
-                <label for="page-type" class="form-label">Make Parent</label>
+                <label for="page-type" class="form-label">Make Parent <span class="text-danger ps-2">*</span></label>
                 <select v-model="form.is_parent" class="form-select" aria-label="Default select example">
                     <option
                       v-for="option in yesNoOptions"
@@ -35,7 +35,7 @@
             </div>
 
             <div class="col-md-6 mb-3">
-                <label for="page-type" class="form-label">Page Type</label>
+                <label for="page-type" class="form-label">Page Type <span class="text-danger ps-2">*</span></label>
                 <select v-model="form.page_type" class="form-select">
                   <option
                     v-for="option in pageTypeOptions"
@@ -48,8 +48,9 @@
             </div>
 
             <div class="col-md-6 mb-3">
-                <label for="page-title" class="form-label">Title</label>
-                <input v-model="form.title" class="form-control" id="page-title" type="text" placeholder="Enter Title" />
+                <label for="page-title" class="form-label">Title <span class="text-danger ps-2">*</span></label>
+                <input v-model="form.title" @keydown="error.titleMessage=''" class="form-control" id="page-title" type="text" placeholder="Enter Title" />
+                <span class="validation-msg" v-if="error.titleMessage!==''">{{ error.titleMessage }}</span>
             </div>
 
             <div class="col-md-6 mb-3">
@@ -153,6 +154,9 @@ export default {
               { label: 'Standard', value: 'standard' },
               { label: 'Contact', value: 'contact' }
           ],
+          error: {
+            titleMessage: '',
+          },
         };
     },
     mounted() {
@@ -201,62 +205,80 @@ export default {
       handleSaveOrUpdatePage() {
         const sectionComponent = this.$refs.sectionComponent;
         const sections = sectionComponent.getSections();
-        const formData = new FormData();
+        if(this.validateForm()) {
+          const formData = new FormData();
 
-        // Append static fields
-        formData.append('parent_id', this.form.parent_id);
-        formData.append('title', this.form.title);
-        formData.append('meta_title', this.form.meta_title);
-        formData.append('meta_description', this.form.meta_description);
-        formData.append('order', this.form.order);
-        formData.append('is_parent', this.form.is_parent);
-        formData.append('page_type', this.form.page_type);
-        formData.append('add_to_menu', this.form.add_to_menu);
-        formData.append('add_to_home', this.form.add_to_home);
-        formData.append('status', this.form.status ? 1 : 0);
+          // Append static fields
+          formData.append('parent_id', this.form.parent_id);
+          formData.append('title', this.form.title);
+          formData.append('meta_title', this.form.meta_title);
+          formData.append('meta_description', this.form.meta_description);
+          formData.append('order', this.form.order);
+          formData.append('is_parent', this.form.is_parent);
+          formData.append('page_type', this.form.page_type);
+          formData.append('add_to_menu', this.form.add_to_menu);
+          formData.append('add_to_home', this.form.add_to_home);
+          formData.append('status', this.form.status ? 1 : 0);
 
-        // Append dynamic sections
-        sections.forEach((section, index) => {
-            formData.append(`sections[${index}][id]`, section.id);
-            formData.append(`sections[${index}][layout]`, section.layout);
-            formData.append(`sections[${index}][content]`, section.content);
+          // Append dynamic sections
+          sections.forEach((section, index) => {
+              formData.append(`sections[${index}][id]`, section.id);
+              formData.append(`sections[${index}][layout]`, section.layout);
+              formData.append(`sections[${index}][content]`, section.content);
 
-            if (section.image) {
-                formData.append(`sections[${index}][image]`, section.image);
-            } else if (section.media_id) {
-                formData.append(`sections[${index}][media_id]`, section.media_id);
-            }
-        });
+              if (section.image) {
+                  formData.append(`sections[${index}][image]`, section.image);
+              } else if (section.media_id) {
+                  formData.append(`sections[${index}][media_id]`, section.media_id);
+              }
+          });
 
-        if (this.pageId) {
-            updatePage(this.pageId, formData)
-            .then((response) => {
-                if (response.data.code == 200) {
-                    this.$router.push('/admin/pages');
-                } else {
-                    alert(response.data.message);
-                }
-            })
-            .catch(err => {
-                console.error('Failed to update page:', err);
-                alert(err);
-            });
-        } else {
-            savePage(formData)
-            .then((response) => {
-                if (response.data.code == 200) {
-                    this.$router.push('/admin/pages');
-                } else {
-                    alert(response.data.message);
-                }
-            })
-            .catch(err => {
-                console.error('Failed to save page:', err);
-                alert(err);
-            });
+          if (this.pageId) {
+              updatePage(this.pageId, formData)
+              .then((response) => {
+                  if (response.data.code == 200) {
+                      this.$router.push('/admin/pages');
+                  } else {
+                      alert(response.data.message);
+                  }
+              })
+              .catch(err => {
+                  console.error('Failed to update page:', err);
+                  alert(err);
+              });
+          } else {
+              savePage(formData)
+              .then((response) => {
+                  if (response.data.code == 200) {
+                      this.$router.push('/admin/pages');
+                  } else {
+                      alert(response.data.message);
+                  }
+              })
+              .catch(err => {
+                  console.error('Failed to save page:', err);
+                  alert(err);
+              });
+          }
         }
-    }
+      },
+      validateForm() {
+        let valid = true;
+        if (!this.form.title) {
+            this.error.titleMessage = "Title is required.";
+            valid = false;
+        } else {
+            this.error.titleMessage = '';
+        }
 
+        const sectionComponent = this.$refs.sectionComponent;
+        const sectionsAreValid = sectionComponent.validateSections();
+        if (!sectionsAreValid) {
+          valid = false;
+        }
+        
+        return valid;
+      }
     },
 };
 </script>

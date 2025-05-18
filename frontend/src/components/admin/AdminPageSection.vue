@@ -66,11 +66,14 @@
                         </div>
                         <div class="col-md-12">
                             <label class="form-label">Content</label>
+                            <span class="text-danger ps-2">*</span>
                             <ckeditor
                                 :editor="editor"
                                 v-model="section.content"
                                 :config="editorConfig"
+                                @input="clearContentError(index)"
                             />
+                            <span class="validation-msg" v-if="section.validationError">{{ section.validationError }}</span>
                         </div>
                     </div>
                 </div>
@@ -103,7 +106,8 @@ export default {
               image: null,
               content: "",
               media_id: null,
-              previewUrl: null
+              previewUrl: null,
+              validationError: '',
             }
           ],
           // start ckeditor settings
@@ -187,6 +191,26 @@ export default {
             const inputRef = this.$refs[`fileInput-${index}`];
             if (inputRef && inputRef[0]) {
                 inputRef[0].value = "";
+            }
+        },
+        validateSections() {
+            let isValid = true;
+
+            this.sections.forEach((section, index) => {
+                const plainText = section.content.replace(/<[^>]*>/g, '').trim();
+                if (plainText.length < 3) {
+                    this.sections[index].validationError = 'Content must be at least 3 characters long.';
+                    isValid = false;
+                } else {
+                    this.sections[index].validationError = '';
+                }
+            });
+
+            return isValid;
+        },
+        clearContentError(index) {
+            if (this.sections[index].content && this.sections[index].content.trim() !== '') {
+                this.sections[index].validationError = '';
             }
         }
     },
