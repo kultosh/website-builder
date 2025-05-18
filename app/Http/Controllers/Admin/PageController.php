@@ -166,6 +166,25 @@ class PageController extends Controller
         }
     }
 
+    public function destroy($id) {
+        try {
+            $page = Page::findOrFail($id);
+            if($page) {
+               $page->sections()->each(function ($section) {
+                    if ($section->media) {
+                        Media::deleteMedia($section);
+                    }
+                    $section->delete();
+                });
+                $page->delete();
+            }
+            $responseMessage = 'Page deleted successfully.';
+            return $this->successJsonResponse($responseMessage);
+        } catch (Exception $error) {
+            return $this->exceptionJsonResponse($error);
+        }
+    }
+
     public function parentPages()
     {
         try {

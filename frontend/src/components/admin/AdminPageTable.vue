@@ -6,7 +6,7 @@
             <th v-for="(column,colIndex) in columns" :key="colIndex">{{ column.label }}</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody v-if="pages.length">
         <tr v-for="(page,index) in pages" :key="page.id">
           <td>{{ index + 1 + (pagination.current_page - 1) * pagination.per_page }}</td>
           <td>{{ page.title }}</td>
@@ -16,8 +16,13 @@
           <td>{{ formatDate(page.created_at) }}</td>
           <td>
             <router-link :to="`/admin/pages/${page.id}/edit`" class="btn btn-sm btn-primary me-2"><i class="fas fa-pencil-alt"></i></router-link>
-            <button @click="deletePage(page.id)" class="btn btn-sm btn-danger"><i class="fas fa-trash-alt"></i></button>
+            <button @click="deleteCurrentPage(page.id)" class="btn btn-sm btn-danger"><i class="fas fa-trash-alt"></i></button>
           </td>
+        </tr>
+      </tbody>
+      <tbody v-else>
+        <tr>
+          <td :colspan="columns.length"><div class="d-flex justify-content-center w-100">No Data</div></td>
         </tr>
       </tbody>
     </table>
@@ -47,6 +52,8 @@
 </template>
 
 <script>
+import { deletePage } from '@/services/page';
+
 export default {
   props: {
     pages: {
@@ -92,6 +99,21 @@ export default {
     },
     toYesNo(value) {
       return value ? 'YES' : 'NO';
+    },
+    deleteCurrentPage(id) {
+      const confirmed = confirm('Are you sure?');
+      if (!confirmed) return;
+
+      deletePage(id)
+      .then((response) => {
+        if(response.data.code==200) {
+          this.$emit("page-changed", this.currentPage);
+        }
+      })
+      .catch((e) => {
+        alert('Error');
+        console.log('Error!!', e);
+      })
     }
   },
 };
