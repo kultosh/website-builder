@@ -7,6 +7,10 @@
             <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
             Dashboard
           </router-link>
+          <router-link to="/admin/sliders" class="nav-link">
+            <div class="sb-nav-link-icon"><i class="fas fa-images"></i></div>
+            Sliders
+          </router-link>
           <router-link to="/admin/pages" class="nav-link">
             <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
             Pages
