@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Models\Slider;
 use App\Traits\RequestResponseTrait;
 use Exception;
 use Illuminate\Support\Str;
@@ -75,11 +76,13 @@ class PageController extends Controller
                         }
                     ])
                     ->get();
+            $sliders = Slider::where('status', 1)->with('media:id,name,path,alt_text')->orderBy('order')->get();
 
             $parentIds = $pages->whereNotNull('parent_id')->pluck('parent_id')->unique();
             $sectionGrouped = [
                 'single' => [],
-                'parent' => []
+                'parent' => [],
+                'sliders' => $sliders,
             ];
 
             foreach ($pages as $page) {
