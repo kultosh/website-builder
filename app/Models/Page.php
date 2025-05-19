@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Page extends Model
 {
+    use SoftDeletes;
+    
     protected $fillable = ['parent_id','title', 'slug', 'meta_title', 'meta_description', 'page_type', 'order', 'is_parent', 'is_menu', 'add_to_home', 'status'];
 
     protected static function boot()

@@ -111,6 +111,7 @@ class PageController extends Controller
             // Save section
             $page->sections()->create([
                 'layout_type' => $sectionData['layout'],
+                'order' => $sectionData['order'],
                 'description' => $sectionData['content'],
                 'media_id' => $mediaId,
             ]);
@@ -147,6 +148,7 @@ class PageController extends Controller
             if ($section) {
                 $section->update([
                     'layout_type' => $sectionData['layout'],
+                    'order' => $sectionData['order'],
                     'description' => $sectionData['content'],
                     'media_id' => $mediaId,
                 ]);
@@ -159,6 +161,7 @@ class PageController extends Controller
 
                 $page->sections()->create([
                     'layout_type' => $sectionData['layout'],
+                    'order' => $sectionData['order'],
                     'description' => $sectionData['content'],
                     'media_id' => $mediaId,
                 ]);

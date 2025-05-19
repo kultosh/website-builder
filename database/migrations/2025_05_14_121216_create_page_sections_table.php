@@ -15,9 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('page_id')->nullable()->constrained('pages')->cascadeOnDelete();
             $table->foreignId('media_id')->nullable()->constrained('medias')->nullOnDelete();
+            $table->integer('order')->default(1);
             $table->enum('layout_type', ['1','2','3'])->default('1');
             $table->longText('description')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

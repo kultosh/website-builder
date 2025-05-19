@@ -16,7 +16,17 @@ class PageController extends Controller
     public function showPage($slug)
     {
         try {
-            $page = Page::select('id', 'title', 'slug', 'is_parent', 'parent_id')->where('slug', $slug)->with(['sections:id,page_id,layout_type,description,media_id','sections.media:id,path,alt_text','parent:id,title,slug'])->firstOrFail();
+            $page = Page::select('id', 'title', 'slug', 'is_parent', 'parent_id')
+                    ->where('slug', $slug)
+                    ->with([
+                        'sections' => function ($query) {
+                            $query->select('id', 'page_id', 'order', 'layout_type', 'description', 'media_id')
+                            ->orderBy('order', 'asc');
+                        },
+                        'sections.media:id,path,alt_text',
+                        'parent:id,title,slug'
+                    ])
+                    ->firstOrFail();
 
             $data = [];
             $data['id'] = $page->id;
@@ -75,7 +85,11 @@ class PageController extends Controller
                             ->with('media:id,path,alt_text');
                         }
                     ])
-                    ->get();
+                    ->get()
+                    ->filter(function ($page) {
+                        return $page->is_parent;
+                    })
+                    ->values();
             $sliders = Slider::where('status', 1)->with('media:id,name,path,alt_text')->orderBy('order')->get();
 
             $parentIds = $pages->whereNotNull('parent_id')->pluck('parent_id')->unique();

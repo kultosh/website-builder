@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PageSections extends Model
 {
-    protected $fillable = ['media_id', 'layout_type', 'description'];
+    use SoftDeletes;
+    
+    protected $fillable = ['media_id', 'layout_type', 'description', 'order'];
 
     public function page() {
         return $this->belongsTo(Page::class);
