@@ -42,4 +42,28 @@ class Page extends Model
     {
         return $this->hasMany(Page::class, 'parent_id');
     }
+
+    // Scope for active pages
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
+
+    // Scope for parent pages
+    public function scopeParentPage($query)
+    {
+        return $query->where('is_parent', 1);
+    }
+
+    // Scope for child pages
+    public function scopeChild($query)
+    {
+        return $query->where('is_parent', 0)->whereNotNull('parent_id');
+    }
+
+    // Scope for menu pages
+    public function scopeMenu($query)
+    {
+        return $query->where('is_menu', 1);
+    }
 }
