@@ -55,6 +55,11 @@ php artisan key:generate
 ```bash
 php artisan db:seed
 ```
+4. Link the storage folder with public to access file:
+```bash
+php artisan storage:link
+```
+
 ### For the Vue Frontend
 #### .env Setup
 Add the following variables to your frontend/.env file:
@@ -91,6 +96,12 @@ npm run serve
 3. Add Sliders to the Home Page: Users can add image sliders to the home page for dynamic visual content.
 4. Display Multiple Pages on the Home Page: Users can display multiple pages or sections within the home page, creating a custom layout and read more feature.
 5. Change Template Themes from Settings: Users can change the theme of the website directly from the settings page
+
+## Upcoming Features
+1. Menu Management with user friendly drag & drop menus order
+2. Footer Management with user friendly drag & drop footer order
+3. Live Preview Section while creating/editing pages
+4. Contact Page Handling with contact form functionality
 
 ## API Endpoints
 | HTTP Method                                            | Endpoint        | Description                                                                      |
