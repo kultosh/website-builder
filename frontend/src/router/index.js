@@ -8,6 +8,7 @@ import Pages from "@/views/admin/AdminPages.vue";
 import PageForm from "@/views/admin/AdminPageForm.vue";
 import Sliders from "@/views/admin/AdminSliders.vue";
 import SliderForm from "@/views/admin/AdminSliderForm.vue";
+import Settings from "@/views/admin/GeneralSettings.vue";
 import AdminLogin from "@/views/admin/auth/AdminLogin.vue";
 
 import FrontendLayout from "@/layouts/FrontendLayout.vue";
@@ -34,7 +35,8 @@ const router = new Router({
         { path: "pages/:id/edit", component: PageForm, props: true },
         { path: "sliders", component: Sliders },
         { path: "sliders/new", component: SliderForm },
-        { path: "sliders/:id/edit", component: SliderForm, props: true }
+        { path: "sliders/:id/edit", component: SliderForm, props: true },
+        { path: "settings", component: Settings },
       ]
     },
     {
