@@ -15,6 +15,10 @@
             <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
             Pages
           </router-link>
+          <router-link to="/admin/settings" class="nav-link">
+            <div class="sb-nav-link-icon"><i class="fas fa-cog"></i></div>
+            Settings
+          </router-link>
         </div>
       </div>
       <div class="sb-sidenav-footer">
