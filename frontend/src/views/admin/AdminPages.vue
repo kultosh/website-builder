@@ -13,7 +13,7 @@
       </div>
 
       <div class="card-body">
-        <PageTable :pages="pages" />
+        <PageTable :pages="pages" :pagination="pagination" @page-changed="fetchPages" />
       </div>
     </div>
   </div>
@@ -22,6 +22,7 @@
 <script>
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
 import PageTable from "../../components/admin/AdminPageTable.vue";
+import { getAllPages } from '@/services/page';
 
 export default {
     components: {
@@ -30,23 +31,37 @@ export default {
     },
     data() {
         return {
-        pages: [],
-        breadcrumb: [
-            { name: "Admin", path: "/admin" },
-        ],
+          pages: [],
+          breadcrumb: [
+              { name: "Admin", path: "/admin" },
+          ],
+          pagination: {},
         };
     },
     created() {
         this.fetchPages();
     },
     methods: {
-        fetchPages() {
-          this.pages = [
-              { id: 1, title: "Home", created_at: "2025-05-11" },
-              { id: 2, title: "About Us", created_at: "2025-05-10" },
-              { id: 3, title: "Services", created_at: "2025-05-09" },
-              { id: 4, title: "Contact", created_at: "2025-05-08" },
-          ];
+        fetchPages(page=1) {
+          getAllPages(page)
+          .then((response) => {
+            const data = response.data;
+            if(data.code == 200) {
+              this.pages = data.content.data;
+              this.pagination = {
+                current_page: data.content.current_page,
+                last_page: data.content.last_page,
+                total: data.content.total,
+                per_page: data.content.per_page,
+              };
+            } else {
+              alert(data.message);
+            }
+          })
+          .catch(err => {
+            console.error('Failed To List Page:', err);
+            alert(err);
+          });
         },
     },
 };

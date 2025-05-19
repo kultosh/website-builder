@@ -6,19 +6,26 @@ use App\Http\Controllers\Controller;
 use App\Models\Media;
 use App\Models\Page;
 use App\Traits\RequestResponseTrait;
+use App\Traits\UploadMediaTrait;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+
 class PageController extends Controller
 {
     use RequestResponseTrait;
+    use UploadMediaTrait;
     
-    public function index()
+    public function index(Request $request)
     {
-        return response('index');
+        try {
+            $perPage = $request->get('per_page', 5);
+            $pageList = Page::withCount('sections')->orderBy('created_at', 'desc')->paginate($perPage);
+            $responseMessage = 'Page loaded successfully.';
+            return $this->successJsonResponse($responseMessage,$pageList);
+        } catch (Exception $error) {
+            return $this->exceptionJsonResponse($error);
+        }
     }
 
     public function store(Request $request)
@@ -51,44 +58,53 @@ class PageController extends Controller
         }
     }
 
-    private function createPageSections($requestData, $page)
+    public function edit($id)
     {
-        $manager = new ImageManager(new GdDriver());
-        foreach ($requestData->sections as $index => $sectionData) {
-            $mediaId = null;
+        try {
+            $editPage = Page::where('id', $id)->with('sections.media')->firstOrFail();
+            $responseMessage = 'Edit Page loaded successfully.';
+            return $this->successJsonResponse($responseMessage,$editPage);
+        } catch (Exception $error) {
+            return $this->exceptionJsonResponse($error);
+        }
+    }
 
-            if ($requestData->hasFile("sections.$index.image")) {
-                $imageFile = $requestData->file("sections.$index.image");
-                $originalName = $imageFile->getClientOriginalName();
-                $mimeType = $imageFile->getClientMimeType();
-
-                $filename = uniqid('section_') . '.' . $imageFile->getClientOriginalExtension();
-                $thumbFilename = 'thumb_' . $filename;
-
-                $imageDir = storage_path('app/public/sections');
-                $thumbDir = $imageDir . '/thumbnails';
-
-                // Ensure directories exist
-                File::ensureDirectoryExists($imageDir);
-                File::ensureDirectoryExists($thumbDir);
-
-                // Save original image
-                $image = $manager->read($imageFile->getPathname());
-                $image->save($imageDir . '/' . $filename);
-
-                // Save thumbnail (e.g., 300x200)
-                $thumbnail = $image->scale(width: 300, height: 200);
-                $thumbnail->save($thumbDir . '/' . $thumbFilename);
-
-                // Save to Media table
-                $media = Media::create([
-                    'name' => $originalName,
-                    'mime_type' => $mimeType,
-                    'path' => 'sections/' . $filename,
-                    'thumbnail_path' => 'sections/thumbnails/' . $thumbFilename,
-                    'alt_text' => $sectionData['alt_text'] ?? null,
+    public function update(Request $request, $id)
+    {
+        try {
+            DB::beginTransaction();
+                $page = Page::find($id);
+                $page->update([
+                    'parent_id' => $request->parent_id === 'null' ? null : (int) $request->parent_id,
+                    'title' => $request->title,
+                    'meta_title' => $request->meta_title,
+                    'meta_description' => $request->meta_description,
+                    'page_type' => $request->page_type,
+                    'order' => $request->order,
+                    'is_parent' => $request->is_parent,
+                    'is_menu' => $request->add_to_menu,
+                    'add_to_home' => $request->add_to_home,
+                    'status' => $request->status,
                 ]);
 
+                if(!$request->is_parent) {
+                    $this->updatePageSections($request, $page);
+                }
+            DB::commit();
+            $responseMessage = 'Page updated successfully.';
+            return $this->successJsonResponse($responseMessage);
+        } catch (Exception $error) {
+            return $this->exceptionJsonResponse($error);
+        }
+    }
+
+    private function createPageSections($requestData, $page)
+    {
+        foreach ($requestData->sections as $index => $sectionData) {
+            $mediaId = null;
+            if ($requestData->hasFile("sections.$index.image")) {
+                $uploadedFile = $requestData->file("sections.$index.image");
+                $media = $this->uploadAndSaveInDatabase($uploadedFile, 'sections', 'Section Image');
                 $mediaId = $media->id;
             }
 
@@ -98,6 +114,74 @@ class PageController extends Controller
                 'description' => $sectionData['content'],
                 'media_id' => $mediaId,
             ]);
+        }
+    }
+
+    private function updatePageSections($requestData, $page)
+    {
+        $existingIds = collect($requestData->sections)->pluck('id')->filter()->toArray();
+
+        // Delete Section Removed From Admin Panel of Page Form
+        $page->sections()->whereNotIn('id', $existingIds)->each(function ($section) {
+            if ($section->media) {
+                Media::deleteMedia($section);
+            }
+            $section->delete();
+        });
+
+        // Update Section If Exist Else Create New Section With Media
+        foreach ($requestData->sections as $index => $sectionData) {
+            $mediaId = $sectionData['media_id'] ?? null;
+
+            $section = $page->sections()->find($sectionData['id']);
+            if (!empty($sectionData['id']) && is_numeric($sectionData['id']) && $requestData->hasFile("sections.$index.image")) {
+                if ($section && $section->media) {
+                    Media::deleteMedia($section);
+                }
+
+                $uploadedFile = $requestData->file("sections.$index.image");
+                $media = $this->uploadAndSaveInDatabase($uploadedFile, 'sections', 'Section Image');
+                $mediaId = $media->id;
+            }
+
+            if ($section) {
+                $section->update([
+                    'layout_type' => $sectionData['layout'],
+                    'description' => $sectionData['content'],
+                    'media_id' => $mediaId,
+                ]);
+            } else {
+                if ($requestData->hasFile("sections.$index.image")) {
+                    $uploadedFile = $requestData->file("sections.$index.image");
+                    $media = $this->uploadAndSaveInDatabase($uploadedFile, 'sections', 'Section Image');
+                    $mediaId = $media->id;
+                }
+
+                $page->sections()->create([
+                    'layout_type' => $sectionData['layout'],
+                    'description' => $sectionData['content'],
+                    'media_id' => $mediaId,
+                ]);
+            }
+        }
+    }
+
+    public function destroy($id) {
+        try {
+            $page = Page::findOrFail($id);
+            if($page) {
+               $page->sections()->each(function ($section) {
+                    if ($section->media) {
+                        Media::deleteMedia($section);
+                    }
+                    $section->delete();
+                });
+                $page->delete();
+            }
+            $responseMessage = 'Page deleted successfully.';
+            return $this->successJsonResponse($responseMessage);
+        } catch (Exception $error) {
+            return $this->exceptionJsonResponse($error);
         }
     }
 

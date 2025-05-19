@@ -28,7 +28,8 @@ const router = new Router({
       children: [
         { path: "", component: Dashboard },
         { path: "pages", component: Pages },
-        { path: "pages/new", component: PageForm }
+        { path: "pages/new", component: PageForm },
+        { path: "pages/:id/edit", component: PageForm, props: true }
       ]
     },
     {

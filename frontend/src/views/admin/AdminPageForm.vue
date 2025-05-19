@@ -7,10 +7,10 @@
         {{ pageId ? "Edit Page" : "Add Page" }}
       </div>
       <div class="card-body">
-        <form @submit.prevent="handleSavePage">
+        <form @submit.prevent="handleSaveOrUpdatePage">
           <div class="row">
             <div class="col-md-6 mb-3">
-                <label for="page-type" class="form-label">Make Parent</label>
+                <label for="page-type" class="form-label">Make Parent <span class="text-danger ps-2">*</span></label>
                 <select v-model="form.is_parent" class="form-select" aria-label="Default select example">
                     <option
                       v-for="option in yesNoOptions"
@@ -35,7 +35,7 @@
             </div>
 
             <div class="col-md-6 mb-3">
-                <label for="page-type" class="form-label">Page Type</label>
+                <label for="page-type" class="form-label">Page Type <span class="text-danger ps-2">*</span></label>
                 <select v-model="form.page_type" class="form-select">
                   <option
                     v-for="option in pageTypeOptions"
@@ -48,8 +48,9 @@
             </div>
 
             <div class="col-md-6 mb-3">
-                <label for="page-title" class="form-label">Title</label>
-                <input v-model="form.title" class="form-control" id="page-title" type="text" placeholder="Enter Title" />
+                <label for="page-title" class="form-label">Title <span class="text-danger ps-2">*</span></label>
+                <input v-model="form.title" @keydown="error.titleMessage=''" class="form-control" id="page-title" type="text" placeholder="Enter Title" />
+                <span class="validation-msg" v-if="error.titleMessage!==''">{{ error.titleMessage }}</span>
             </div>
 
             <div class="col-md-6 mb-3">
@@ -94,78 +95,10 @@
 
           <div class="row mb-3" v-if="!form.is_parent">
               <div class="d-flex justify-content-md-end mb-3">
-                  <button type="button" class="btn btn-primary btn-sm" @click="addSection">Add Section</button>
+                  <button type="button" class="btn btn-primary btn-sm" @click="addNewSection">Add Section</button>
               </div>
               <!-- Section: Accordion -->
-              <div class="accordion" id="accordionPanelsStayOpenExample">
-                <div
-                  class="accordion-item mb-3"
-                  :ref="`section-${index}`"
-                  v-for="(section, index) in sections"
-                  :key="section.id"
-                >
-                  <h2 class="accordion-header" :id="`heading-${index}`">
-                    <div class="d-flex justify-content-between align-items-center w-100 bg-light">
-                      <!-- Accordion toggle button -->
-                      <button
-                        class="accordion-button flex-grow-1 bg-transparent shadow-none"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        :data-bs-target="`#collapse-${index}`"
-                        aria-expanded="true"
-                        :aria-controls="`collapse-${index}`"
-                      >
-                        Section {{ index + 1 }}
-                      </button>
-
-                      <!-- Remove button (outside the toggle) -->
-                      <button
-                        v-if="index !== 0"
-                        class="btn btn-danger btn-sm ms-2 me-3"
-                        type="button"
-                        @click="removeSection(index)"
-                        title="Remove Section"
-                      >
-                        <i class="fa fa-trash"></i>
-                      </button>
-                    </div>
-                  </h2>
-                  <div
-                    :id="`collapse-${index}`"
-                    class="accordion-collapse collapse show"
-                    :aria-labelledby="`heading-${index}`"
-                  >
-                    <div class="accordion-body">
-                      <div class="row">
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Layout Type</label>
-                          <select v-model="section.layout" class="form-select">
-                            <option value="1">One</option>
-                            <option value="2">Two</option>
-                            <option value="3">Three</option>
-                          </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Image</label>
-                          <input
-                            type="file"
-                            class="form-control"
-                            @change="handleImageUpload($event, index)"
-                          />
-                        </div>
-                        <div class="col-md-12">
-                          <label class="form-label">Content</label>
-                          <ckeditor
-                            :editor="editor"
-                            v-model="section.content"
-                            :config="editorConfig"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <AdminPageSection ref="sectionComponent" :sectionList="sectionList" />
           </div>
           <div class="form-check mb-3">
               <input v-model="form.status" class="form-check-input" id="page-status" type="checkbox" checked />
@@ -182,14 +115,13 @@
 
 <script>
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
-import CKEditor from '@ckeditor/ckeditor5-vue'
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-import { savePage, getParentPages } from '@/services/page';
+import AdminPageSection from '../../components/admin/AdminPageSection.vue';
+import { savePage, getParentPages, getPage, updatePage } from '@/services/page';
 
 export default {
     components: {
         Breadcrumb,
-        ckeditor: CKEditor.component
+        AdminPageSection,
     },
     data() {
         return {
@@ -202,7 +134,7 @@ export default {
           // Form Fields
           form: {
             parent_id: null,
-            title: 'Running',
+            title: '',
             meta_title: '',
             meta_description: '',
             order: 1,
@@ -212,6 +144,7 @@ export default {
             add_to_home: 0,
             status: true
           },
+          sectionList: [],
           parentPages: [],
           yesNoOptions: [
               { label: 'Yes', value: 1 },
@@ -221,74 +154,19 @@ export default {
               { label: 'Standard', value: 'standard' },
               { label: 'Contact', value: 'contact' }
           ],
-          // Add New Section
-          sections: [
-            {
-              id: 1,
-              layout: "1",
-              image: null,
-              content: ""
-            }
-          ],
-          // start ckeditor settings
-          editor: ClassicEditor,
-          editorData: '',
-          editorConfig: {
-            toolbar: [
-              "heading",
-              "|",
-              "bold",
-              "italic",
-              "link",
-              "bulletedList",
-              "numberedList",
-              "|",
-              "blockQuote",
-              "insertTable",
-              "mediaEmbed",
-              "|",
-              "undo",
-              "redo",
-            ],
+          error: {
+            titleMessage: '',
           },
-          // end ckeditor settings
         };
     },
-    
     mounted() {
       this.fetchParentPages();
+      if(this.pageId!=null) {
+        this.editPage(this.pageId)
+      }
     },
 
     methods: {
-      addSection() {
-        const newId = this.sections.length + 1;
-        this.sections.push({
-          id: newId,
-          layout: "1",
-          image: null,
-          content: ""
-        });
-
-        this.$nextTick(() => {
-          const lastIndex = this.sections.length - 1;
-          const newSectionRef = this.$refs[`section-${lastIndex}`];
-
-          if (newSectionRef && newSectionRef[0]) {
-            newSectionRef[0].scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-        });
-
-      },
-      handleImageUpload(event, index) {
-        const file = event.target.files[0];
-        this.sections[index].image = file;
-      },
-      removeSection(index) {
-        if (index === 0) return;
-        if (confirm("Are you sure you want to remove this section?")) {
-          this.sections.splice(index, 1);
-        }
-      },
       async fetchParentPages() {
         try {
           const response = await getParentPages();
@@ -297,43 +175,109 @@ export default {
           console.error("Failed to load parent pages", error);
         }
       },
-      handleSavePage() {
-        const formData = new FormData();
-
-        // Append static fields
-        formData.append('parent_id', this.form.parent_id);
-        formData.append('title', this.form.title);
-        formData.append('meta_title', this.form.meta_title);
-        formData.append('meta_description', this.form.meta_description);
-        formData.append('order', this.form.order);
-        formData.append('is_parent', this.form.is_parent);
-        formData.append('page_type', this.form.page_type);
-        formData.append('add_to_menu', this.form.add_to_menu);
-        formData.append('add_to_home', this.form.add_to_home);
-        formData.append('status', this.form.status ? 1 : 0);
-
-        // Append dynamic sections
-        this.sections.forEach((section, index) => {
-          formData.append(`sections[${index}][layout]`, section.layout);
-          formData.append(`sections[${index}][content]`, section.content);
-          if (section.image) {
-            formData.append(`sections[${index}][image]`, section.image);
-          }
-        });
-
-        savePage(formData)
+      addNewSection() {
+        this.$refs.sectionComponent.addSection();
+      },
+      editPage(params) {
+        getPage(params)
         .then((response) => {
-          console.log('response>>', response.status);
-          if(response.data.code == 200) {
-            this.$router.push('/admin/pages');
-          } else {
-            alert(response.data.message);
+          if(response.data.code==200) {
+            const data = response.data.content;
+            console.log('data>>', data);
+            this.form.parent_id = data.parent_id;
+            this.form.title = data.title;
+            this.form.meta_title = data.meta_title;
+            this.form.meta_description = data.meta_description;
+            this.form.order = data.order;
+            this.form.is_parent = data.is_parent;
+            this.form.page_type = data.page_type;
+            this.form.add_to_menu = data.is_menu;
+            this.form.add_to_home = data.add_to_home;
+            this.form.status = data.status;
+            this.sectionList = data.sections
           }
+          
         })
-        .catch(err => {
-          console.error('Failed to save page:', err);
-          alert(err);
-        });
+        .catch((e) => {
+          console.log('Something Wrong!', e);
+        })
+      },
+      handleSaveOrUpdatePage() {
+        const sectionComponent = this.$refs.sectionComponent;
+        const sections = sectionComponent.getSections();
+        if(this.validateForm()) {
+          const formData = new FormData();
+
+          // Append static fields
+          formData.append('parent_id', this.form.parent_id);
+          formData.append('title', this.form.title);
+          formData.append('meta_title', this.form.meta_title);
+          formData.append('meta_description', this.form.meta_description);
+          formData.append('order', this.form.order);
+          formData.append('is_parent', this.form.is_parent);
+          formData.append('page_type', this.form.page_type);
+          formData.append('add_to_menu', this.form.add_to_menu);
+          formData.append('add_to_home', this.form.add_to_home);
+          formData.append('status', this.form.status ? 1 : 0);
+
+          // Append dynamic sections
+          sections.forEach((section, index) => {
+              formData.append(`sections[${index}][id]`, section.id);
+              formData.append(`sections[${index}][layout]`, section.layout);
+              formData.append(`sections[${index}][content]`, section.content);
+
+              if (section.image) {
+                  formData.append(`sections[${index}][image]`, section.image);
+              } else if (section.media_id) {
+                  formData.append(`sections[${index}][media_id]`, section.media_id);
+              }
+          });
+
+          if (this.pageId) {
+              updatePage(this.pageId, formData)
+              .then((response) => {
+                  if (response.data.code == 200) {
+                      this.$router.push('/admin/pages');
+                  } else {
+                      alert(response.data.message);
+                  }
+              })
+              .catch(err => {
+                  console.error('Failed to update page:', err);
+                  alert(err);
+              });
+          } else {
+              savePage(formData)
+              .then((response) => {
+                  if (response.data.code == 200) {
+                      this.$router.push('/admin/pages');
+                  } else {
+                      alert(response.data.message);
+                  }
+              })
+              .catch(err => {
+                  console.error('Failed to save page:', err);
+                  alert(err);
+              });
+          }
+        }
+      },
+      validateForm() {
+        let valid = true;
+        if (!this.form.title) {
+            this.error.titleMessage = "Title is required.";
+            valid = false;
+        } else {
+            this.error.titleMessage = '';
+        }
+
+        const sectionComponent = this.$refs.sectionComponent;
+        const sectionsAreValid = sectionComponent.validateSections();
+        if (!sectionsAreValid) {
+          valid = false;
+        }
+        
+        return valid;
       }
     },
 };
@@ -342,9 +286,5 @@ export default {
 <style scoped>
   .card-header {
     background-color: #f8f9fa;
-  }
-  /* Set the height of the CKEditor content area */
-  ::v-deep(.ck-editor__editable) {
-    min-height: 300px !important;
   }
 </style>
