@@ -64,6 +64,10 @@
                                 :ref="`fileInput-${index}`"
                             />
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="page-section-order" class="form-label">Order</label>
+                            <input v-model="section.order" class="form-control" id="page-section-order" type="number" min="1" placeholder="Enter Page Section Order Number" />
+                        </div>
                         <div class="col-md-12">
                             <label class="form-label">Content</label>
                             <span class="text-danger ps-2">*</span>
@@ -103,6 +107,7 @@ export default {
             {
               id: 1,
               layout: "1",
+              order: 1,
               image: null,
               content: "",
               media_id: null,
@@ -139,6 +144,7 @@ export default {
             return this.sections.map(section => ({
                 id: section.id,
                 layout: section.layout,
+                order: section.order,
                 content: section.content,
                 image: section.image || null,
                 media_id: section.media_id || null
@@ -148,6 +154,7 @@ export default {
             this.sections.push({
                 id: null,
                 layout: "1",
+                order: 1,
                 image: null,
                 content: ""
             });
@@ -222,6 +229,7 @@ export default {
                         return {
                             id: sectionData.id,
                             layout: sectionData.layout_type,
+                            order: sectionData.order,
                             content: sectionData.description || "",
                             image: null,
                             media_id: sectionData.media?.id || null,

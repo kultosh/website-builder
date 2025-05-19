@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('page_sections', function (Blueprint $table) {
+        Schema::create('sliders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('page_id')->nullable()->constrained('pages')->cascadeOnDelete();
             $table->foreignId('media_id')->nullable()->constrained('medias')->nullOnDelete();
+            $table->string('title');
+            $table->text('caption')->nullable();
+            $table->string('url')->nullable();
             $table->integer('order')->default(1);
-            $table->enum('layout_type', ['1','2','3'])->default('1');
-            $table->longText('description')->nullable();
+            $table->boolean('status')->default(1);
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('page_sections');
+        Schema::dropIfExists('sliders');
     }
 };

@@ -203,8 +203,6 @@ export default {
         })
       },
       handleSaveOrUpdatePage() {
-        const sectionComponent = this.$refs.sectionComponent;
-        const sections = sectionComponent.getSections();
         if(this.validateForm()) {
           const formData = new FormData();
 
@@ -219,19 +217,24 @@ export default {
           formData.append('add_to_menu', this.form.add_to_menu);
           formData.append('add_to_home', this.form.add_to_home);
           formData.append('status', this.form.status ? 1 : 0);
-
+          
           // Append dynamic sections
-          sections.forEach((section, index) => {
-              formData.append(`sections[${index}][id]`, section.id);
-              formData.append(`sections[${index}][layout]`, section.layout);
-              formData.append(`sections[${index}][content]`, section.content);
+          if(!this.form.is_parent) {
+            const sectionComponent = this.$refs.sectionComponent;
+            const sections = sectionComponent.getSections();
+            sections.forEach((section, index) => {
+                formData.append(`sections[${index}][id]`, section.id);
+                formData.append(`sections[${index}][layout]`, section.layout);
+                formData.append(`sections[${index}][order]`, section.order);
+                formData.append(`sections[${index}][content]`, section.content);
 
-              if (section.image) {
-                  formData.append(`sections[${index}][image]`, section.image);
-              } else if (section.media_id) {
-                  formData.append(`sections[${index}][media_id]`, section.media_id);
-              }
-          });
+                if (section.image) {
+                    formData.append(`sections[${index}][image]`, section.image);
+                } else if (section.media_id) {
+                    formData.append(`sections[${index}][media_id]`, section.media_id);
+                }
+            });
+          }
 
           if (this.pageId) {
               updatePage(this.pageId, formData)
@@ -271,10 +274,12 @@ export default {
             this.error.titleMessage = '';
         }
 
-        const sectionComponent = this.$refs.sectionComponent;
-        const sectionsAreValid = sectionComponent.validateSections();
-        if (!sectionsAreValid) {
-          valid = false;
+        if(!this.form.is_parent) {
+          const sectionComponent = this.$refs.sectionComponent;
+          const sectionsAreValid = sectionComponent.validateSections();
+          if (!sectionsAreValid) {
+            valid = false;
+          }
         }
         
         return valid;

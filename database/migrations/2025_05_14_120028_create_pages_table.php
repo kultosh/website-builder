@@ -25,6 +25,7 @@ return new class extends Migration
             $table->boolean('add_to_home')->default(0)->comment('To display page in Home page');
             $table->boolean('status')->default(1);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
