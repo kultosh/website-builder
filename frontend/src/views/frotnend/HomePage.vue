@@ -39,7 +39,9 @@ export default{
                 const data = response.data.content;
                 this.singlePageList = data.single;
                 this.parentChildPageList = data.parent;
-                this.sliderList = data.sliders;
+                const settings = JSON.parse(localStorage.getItem('appSettings')) || {};
+                const maxSlider = settings.max_slider || 10;
+                this.sliderList = data.sliders.slice(0, maxSlider);
             })
             .catch(err => {
                 console.error('Page not found', err);

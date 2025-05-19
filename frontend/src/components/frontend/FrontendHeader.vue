@@ -1,7 +1,7 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <nav :class="theme" class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">Navbar</a>
+      <a class="navbar-brand" href="#"><img v-if="logo" :src="logo" alt="Logo" class="navbar-logo" /></a>
       <button
         class="navbar-toggler"
         type="button"
@@ -78,6 +78,7 @@
 import { getMenuPages } from "@/services/frontendApi";
 
 export default {
+  props: ['theme','logo'],
   data() {
     return {
       menuPages: [],
@@ -115,5 +116,8 @@ export default {
 .navbar .nav-item.active > .nav-link {
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 0.25rem;
+}
+.navbar-logo {
+  height: 40px;
 }
 </style>
