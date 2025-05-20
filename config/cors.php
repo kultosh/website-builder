@@ -5,7 +5,7 @@ return [
     'allowed_methods' => ['*'],
     'allowed_origins' => [
         'http://localhost:8080',
-        'https://santosh-website-builder.netlify.app/',
+        'https://santosh-website-builder.netlify.app',
     ],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
