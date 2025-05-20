@@ -105,11 +105,13 @@ export default {
       return value ? 'Active' : 'Inactive';
     },
     limitText(params) {
-      const maxLength = 20;
-      if (params.length > maxLength) {
-         return params.slice(0, maxLength) + '...';
-      } else {
-        return params;
+      if(params!=null) {
+        const maxLength = 20;
+        if (params.length > maxLength) {
+          return params.slice(0, maxLength) + '...';
+        } else {
+          return params;
+        }
       }
     },
     getImageUrl(path) {
