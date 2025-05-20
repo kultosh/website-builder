@@ -12,7 +12,11 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libcurl4-openssl-dev \
     libssl-dev \
-    && docker-php-ext-install pdo pdo_mysql zip
+    libjpeg-dev \
+    libpng-dev \
+    libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_mysql zip gd
 
 # Install Composer globally
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
