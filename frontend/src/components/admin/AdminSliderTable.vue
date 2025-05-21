@@ -13,7 +13,7 @@
           <td>{{ limitText(slider.caption) }}</td>
           <td>{{ slider.url }}</td>
           <td>{{ slider.order }}</td>
-          <td><img :src="getImageUrl(slider.media.path)" class="d-block w-100" :alt="slider.media.alt_text" /></td>
+          <td><img :src="getImageUrl(slider.media.thumbnail_path)" class="d-block w-100" :alt="slider.media.alt_text" /></td>
           <td>{{ toActiveInactive(slider.status) }}</td>
           <td>{{ formatDate(slider.created_at) }}</td>
           <td>
