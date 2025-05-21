@@ -1,6 +1,6 @@
 ## About Calendar
 
-This project helps users build a basic website with dynamic pages, dynamic content, and dynamic menus, built using Vue and Laravel.
+This project helps users build a basic website with dynamic pages, dynamic content, and dynamic menus, built using Vue and Laravel. [Live Demo of the Website Builder](https://santosh-website-builder.netlify.app/)
 
 ## Table of Contents
 
@@ -8,9 +8,13 @@ This project helps users build a basic website with dynamic pages, dynamic conte
 2. [Installation](#installation)
 3. [Configuration](#configuration)
 4. [Usage](#usage)
-5. [API Endpoints](#api-endpoints)
-6. [Technologies Used](#technologies-used)
-7. [Contributing](#contributing)
+5. [What Has Been Done](#what-has-been-done)
+6. [What Can Be Done](#what-can-be-done)
+7. [Upcoming Features](#upcoming-features)
+8. [API Endpoints](#api-endpoints)
+9. [Technologies Used](#technologies-used)
+10. [Credentials](#credentials)
+11. [Contributing](#contributing)
 
 ## Prerequisites
 
@@ -128,3 +132,10 @@ npm run serve
 ## Technologies Used
 - Frontend: Vue.js 2, Axios, Boostrap 5.3, CKEDITOR 5,
 - Backend: Laravel, Sanctum, Image Intervention
+
+## Credentials
+- email: admin@admin.com
+- password: password
+
+## Contributing
+Feel free to fork this repository and make your changes. If you would like to contribute, submit a pull request.
