@@ -44,7 +44,7 @@ export default {
               { name: "Admin", path: "/admin" },
           ],
           pagination: {},
-          isLoading: true,
+          isLoading: false,
           alertTitle: 'success',
           alertMessage: 'This is test',
           alertType: 'info',
@@ -60,6 +60,7 @@ export default {
     },
     methods: {
         fetchSliders(page=1) {
+          this.isLoading = true;
           getAllSliders(page)
           .then((response) => {
             const data = response.data;
