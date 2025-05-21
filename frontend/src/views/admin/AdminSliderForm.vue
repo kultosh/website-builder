@@ -4,10 +4,10 @@
     
     <div class="card mb-4">
       <div class="card-header">
-        {{ sliderId ? "Edit Slider" : "Add SLider" }}
+        {{ sliderId ? "Edit Slider" : "Add Slider" }}
       </div>
       <div class="card-body">
-        <form @submit.prevent="handleSaveOrUpdateSlider">
+        <form @submit.prevent="handleSaveOrUpdateSlider" v-if="!isLoading">
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="slider-title" class="form-label">Title <span class="text-danger ps-2">*</span></label>
@@ -56,6 +56,7 @@
                 </div>
             </div>
         </form>
+        <LoaderComponent v-else />
       </div>
     </div>
   </div>
@@ -64,15 +65,19 @@
 <script>
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
 import { saveSlider, getSlider, updateSlider } from '@/services/slider';
+import LoaderComponent from "../../components/LoaderComponent.vue";
+import { EventBus } from '@/utils/eventBus';
 
 export default {
     components: {
         Breadcrumb,
+        LoaderComponent
     },
     data() {
         return {
             sliderId: this.$route.params.id || null,
             title: "",
+            isLoading: false,
             breadcrumb: [
                 { name: "Admin", path: "/admin" },
                 { name: "Sliders", path: "/admin/sliders" },
@@ -96,11 +101,10 @@ export default {
     },
     mounted() {
       if(this.sliderId != null) {
-          console.log('yess');
+        this.isLoading = true;
         this.editSlider(this.sliderId)
       }
     },
-
     methods: {
         handleImageUpload(event) {
             const file = event.target.files[0];
@@ -141,10 +145,14 @@ export default {
             })
             .catch((e) => {
                 console.log('Failed to fetch slider', e);
+            })
+            .finally(() => {
+                this.isLoading = false;
             });
         },
         handleSaveOrUpdateSlider() {
             if(this.validateForm()) {
+                this.isLoading = true;
                 const formData = new FormData();
                 formData.append('title', this.form.title);
                 formData.append('caption', this.form.caption);
@@ -158,32 +166,45 @@ export default {
                     formData.append('media_id', this.media_id);
                 }
 
-
                 if (this.sliderId) {
                     updateSlider(this.sliderId, formData)
                     .then((response) => {
-                        if (response.data.code == 200) {
-                            this.$router.push('/admin/sliders');
-                        } else {
-                            alert(response.data.message);
-                        }
+                        const responseData = response.data;
+                        const alertTitle = responseData.code == 200 ? 'Success:' : 'Error:';
+                        this.$router.push('/admin/sliders').then(() => {
+                            EventBus.$emit('alert', {
+                                title: alertTitle,
+                                message: responseData.message,
+                                type: responseData.status
+                            });
+                        });
                     })
                     .catch(err => {
                         console.error('Failed to update page:', err);
                         alert(err);
+                    })
+                    .finally(() => {
+                        this.isLoading = false;
                     });
                 } else {
                     saveSlider(formData)
                     .then((response) => {
-                        if (response.data.code == 200) {
-                            this.$router.push('/admin/sliders');
-                        } else {
-                            alert(response.data.message);
-                        }
+                        const responseData = response.data;
+                        const alertTitle = responseData.code == 200 ? 'Success:' : 'Error:';
+                        this.$router.push('/admin/sliders').then(() => {
+                            EventBus.$emit('alert', {
+                                title: alertTitle,
+                                message: responseData.message,
+                                type: responseData.status
+                            });
+                        });
                     })
                     .catch(err => {
                         console.error('Failed to save page:', err);
                         alert(err);
+                    })
+                    .finally(() => {
+                        this.isLoading = false;
                     });
                 }
             }
