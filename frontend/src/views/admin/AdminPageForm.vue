@@ -190,18 +190,17 @@ export default {
         .then((response) => {
           if(response.data.code==200) {
             const data = response.data.content;
-            console.log('data>>', data);
             this.form.parent_id = data.parent_id;
             this.form.title = data.title;
-            this.form.meta_title = data.meta_title;
-            this.form.meta_description = data.meta_description;
-            this.form.order = data.order;
-            this.form.is_parent = data.is_parent;
+            this.form.meta_title = data.meta_title??'';
+            this.form.meta_description = data.meta_description??'';
+            this.form.order = data.order??1;
+            this.form.is_parent = data.is_parent??'';
             this.form.page_type = data.page_type;
             this.form.add_to_menu = data.is_menu;
             this.form.add_to_home = data.add_to_home;
             this.form.status = data.status;
-            this.sectionList = data.sections
+            this.sectionList = data.sections;
           }
           
         })
