@@ -77,7 +77,7 @@ class PageController extends Controller
     public function getHomePageSections()
     {
         try {
-            $pages = Page::select('id', 'title', 'slug', 'parent_id')
+            $pages = Page::select('id', 'title', 'slug', 'parent_id','is_parent')
                     ->where('add_to_home', true)
                     ->with([
                         'sections' => function ($query) {
@@ -85,11 +85,7 @@ class PageController extends Controller
                             ->with('media:id,path,alt_text');
                         }
                     ])
-                    ->get()
-                    ->filter(function ($page) {
-                        return $page->is_parent;
-                    })
-                    ->values();
+                    ->get();
             $sliders = Slider::where('status', 1)->with('media:id,name,path,alt_text')->orderBy('order')->get();
 
             $parentIds = $pages->whereNotNull('parent_id')->pluck('parent_id')->unique();
@@ -99,22 +95,21 @@ class PageController extends Controller
                 'sliders' => $sliders,
             ];
 
-            foreach ($pages as $page) {
-                if ($page->parent_id) {
-                    continue;
-                }
+            foreach ($pages->whereNull('parent_id') as $page) {
+                $hasChildren = $parentIds->contains($page->id);
 
-                if ($parentIds->contains($page->id)) {
-                    $children = $pages->where('parent_id', $page->id)->map(function($child) {
+                if ($hasChildren || $page->is_parent) {
+                    $children = $pages->where('parent_id', $page->id)->map(function ($child) {
                         return $this->formatPageData($child);
                     })->values();
+
                     $sectionGrouped['parent'][] = [
                         'parent_id' => $page->id,
                         'parent_page_title' => $page->title,
                         'children' => $children
                     ];
                 } else {
-                    $sectionGrouped['single'][] = $this->formatPageData($page,400);
+                    $sectionGrouped['single'][] = $this->formatPageData($page, 400);
                 }
             }
 
@@ -135,7 +130,7 @@ class PageController extends Controller
             'id' => $page->id,
             'title' => $page->title,
             'slug' => $page->slug,
-            'layout_type' => $firstSection->layout_type,
+            'layout_type' => $firstSection->layout_type ?? null,
             'description' => Str::limit($firstSection->description ?? '', $limit),
             'image_path' => $media->path ?? null,
             'image_alt_text' => $media->alt_text ?? null,
