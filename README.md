@@ -1,4 +1,4 @@
-## About Calendar
+## About Website Builder
 
 This project helps users build a basic website with dynamic pages, dynamic content, and dynamic menus, built using Vue and Laravel. [Live Demo of the Website Builder](https://santosh-website-builder.netlify.app/)
 
