@@ -1,6 +1,6 @@
 <template>
     <div class="container mt-5">
-        <div class="row justify-content-center">
+        <div class="row justify-content-center" v-if=!isLoading>
             <div class="col-lg-5">
                 <div class="card shadow-lg border-0 rounded-lg mt-5 bg-secondary-white">
                     <div class="card-header"><h3 class="text-center font-weight-light my-4">Login</h3></div>
@@ -22,21 +22,26 @@
                 </div>
             </div>
         </div>
+        <OverlayLoader v-else :visible="isLoading" />
     </div>
 </template>
 
 <script>
 import { login } from '../../../services/auth';
+import OverlayLoader from '@/components/OverlayLoaderComponent.vue';
 
 export default {
+  components: { OverlayLoader },
   data() {
     return {
       email: '',
-      password: ''
+      password: '',
+      isLoading: false,
     };
   },
   methods: {
     handleLogin() {
+        this.isLoading = true;
         login(this.email, this.password)
         .then(response => {
             const token = response.data.token;
@@ -50,6 +55,9 @@ export default {
         .catch(err => {
             console.error('Login failed:', err);
             alert('Invalid credentials');
+        })
+        .finally(() => {
+            this.isLoading = false;
         });
 
     }
