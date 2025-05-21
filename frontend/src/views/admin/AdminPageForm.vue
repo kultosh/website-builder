@@ -41,6 +41,7 @@
                     v-for="option in pageTypeOptions"
                     :key="option.value"
                     :value="option.value"
+                    :disabled="option.isDisabled"
                   >
                     {{ option.label }}
                   </option>
@@ -156,8 +157,8 @@ export default {
               { label: 'No', value: 0 }
           ],
           pageTypeOptions: [
-              { label: 'Standard', value: 'standard' },
-              { label: 'Contact', value: 'contact' }
+              { label: 'Standard', value: 'standard', isDisabled: false },
+              { label: 'Contact', value: 'contact', isDisabled: true }
           ],
           error: {
             titleMessage: '',
