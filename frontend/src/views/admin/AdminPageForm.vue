@@ -117,6 +117,7 @@
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
 import AdminPageSection from '../../components/admin/AdminPageSection.vue';
 import { savePage, getParentPages, getPage, updatePage } from '@/services/page';
+import { EventBus } from '@/utils/eventBus';
 
 export default {
     components: {
@@ -239,11 +240,15 @@ export default {
           if (this.pageId) {
               updatePage(this.pageId, formData)
               .then((response) => {
-                  if (response.data.code == 200) {
-                      this.$router.push('/admin/pages');
-                  } else {
-                      alert(response.data.message);
-                  }
+                  const responseData = response.data;
+                  const alertTitle = responseData.code == 200 ? 'Success:' : 'Error:';
+                  this.$router.push('/admin/pages').then(() => {
+                      EventBus.$emit('alert', {
+                          title: alertTitle,
+                          message: responseData.message,
+                          type: responseData.status
+                      });
+                  });
               })
               .catch(err => {
                   console.error('Failed to update page:', err);
@@ -252,11 +257,15 @@ export default {
           } else {
               savePage(formData)
               .then((response) => {
-                  if (response.data.code == 200) {
-                      this.$router.push('/admin/pages');
-                  } else {
-                      alert(response.data.message);
-                  }
+                const responseData = response.data;
+                const alertTitle = responseData.code == 200 ? 'Success:' : 'Error:';
+                this.$router.push('/admin/pages').then(() => {
+                    EventBus.$emit('alert', {
+                        title: alertTitle,
+                        message: responseData.message,
+                        type: responseData.status
+                    });
+                });
               })
               .catch(err => {
                   console.error('Failed to save page:', err);
