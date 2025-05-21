@@ -7,7 +7,7 @@
         {{ pageId ? "Edit Page" : "Add Page" }}
       </div>
       <div class="card-body">
-        <form @submit.prevent="handleSaveOrUpdatePage">
+        <form @submit.prevent="handleSaveOrUpdatePage" v-if="!isLoading">
           <div class="row">
             <div class="col-md-6 mb-3">
                 <label for="page-type" class="form-label">Make Parent <span class="text-danger ps-2">*</span></label>
@@ -108,6 +108,7 @@
               <button type="submit" class="btn btn-primary">{{ pageId ? "Update" : "Save" }}</button>
           </div>
         </form>
+        <LoaderComponent v-else />
       </div>
     </div>
   </div>
@@ -117,17 +118,20 @@
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
 import AdminPageSection from '../../components/admin/AdminPageSection.vue';
 import { savePage, getParentPages, getPage, updatePage } from '@/services/page';
+import LoaderComponent from "../../components/LoaderComponent.vue";
 import { EventBus } from '@/utils/eventBus';
 
 export default {
     components: {
         Breadcrumb,
         AdminPageSection,
+        LoaderComponent
     },
     data() {
         return {
           pageId: this.$route.params.id || null,
           title: "",
+          isLoading: true,
           breadcrumb: [
               { name: "Admin", path: "/admin" },
               { name: "Pages", path: "/admin/pages" },
@@ -164,6 +168,8 @@ export default {
       this.fetchParentPages();
       if(this.pageId!=null) {
         this.editPage(this.pageId)
+      } else {
+        this.isLoading = false; // To remove fetchparentPages loader in case no editPage
       }
     },
 
@@ -202,9 +208,13 @@ export default {
         .catch((e) => {
           console.log('Something Wrong!', e);
         })
+        .finally(() => {
+          this.isLoading = false;
+        });
       },
       handleSaveOrUpdatePage() {
         if(this.validateForm()) {
+          this.isLoading = true;
           const formData = new FormData();
 
           // Append static fields
@@ -253,6 +263,9 @@ export default {
               .catch(err => {
                   console.error('Failed to update page:', err);
                   alert(err);
+              })
+              .finally(() => {
+                this.isLoading = false;
               });
           } else {
               savePage(formData)
@@ -270,6 +283,9 @@ export default {
               .catch(err => {
                   console.error('Failed to save page:', err);
                   alert(err);
+              })
+              .finally(() => {
+                this.isLoading = false;
               });
           }
         }

@@ -14,7 +14,8 @@
         </div>
       </div>
 
-      <div class="card-body">
+      <LoaderComponent v-if="isLoading" />
+      <div class="card-body" v-else>
         <PageTable :pages="pages" :pagination="pagination" @page-changed="fetchPages" />
       </div>
     </div>
@@ -25,6 +26,7 @@
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
 import PageTable from "../../components/admin/AdminPageTable.vue";
 import AlertComponent from "../../components/AlertComponent.vue";
+import LoaderComponent from "../../components/LoaderComponent.vue";
 import { getAllPages } from '@/services/page';
 import { EventBus } from '@/utils/eventBus';
 
@@ -32,7 +34,8 @@ export default {
     components: {
         Breadcrumb,
         PageTable,
-        AlertComponent
+        AlertComponent,
+        LoaderComponent
     },
     data() {
         return {
@@ -40,6 +43,7 @@ export default {
           breadcrumb: [
               { name: "Admin", path: "/admin" },
           ],
+          isLoading: true,
           pagination: {},
           alertTitle: '',
           alertMessage: '',
@@ -74,6 +78,9 @@ export default {
           .catch(err => {
             console.error('Failed To List Page:', err);
             alert(err);
+          })
+          .finally(() => {
+            this.isLoading = false;
           });
         },
         showAlert(payload) {
