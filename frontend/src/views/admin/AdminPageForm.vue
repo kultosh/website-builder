@@ -7,7 +7,7 @@
         {{ pageId ? "Edit Page" : "Add Page" }}
       </div>
       <div class="card-body">
-        <form @submit.prevent="handleSaveOrUpdatePage">
+        <form @submit.prevent="handleSaveOrUpdatePage" v-if="!isLoading">
           <div class="row">
             <div class="col-md-6 mb-3">
                 <label for="page-type" class="form-label">Make Parent <span class="text-danger ps-2">*</span></label>
@@ -41,6 +41,7 @@
                     v-for="option in pageTypeOptions"
                     :key="option.value"
                     :value="option.value"
+                    :disabled="option.isDisabled"
                   >
                     {{ option.label }}
                   </option>
@@ -108,6 +109,7 @@
               <button type="submit" class="btn btn-primary">{{ pageId ? "Update" : "Save" }}</button>
           </div>
         </form>
+        <LoaderComponent v-else />
       </div>
     </div>
   </div>
@@ -117,16 +119,20 @@
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
 import AdminPageSection from '../../components/admin/AdminPageSection.vue';
 import { savePage, getParentPages, getPage, updatePage } from '@/services/page';
+import LoaderComponent from "../../components/LoaderComponent.vue";
+import { EventBus } from '@/utils/eventBus';
 
 export default {
     components: {
         Breadcrumb,
         AdminPageSection,
+        LoaderComponent
     },
     data() {
         return {
           pageId: this.$route.params.id || null,
           title: "",
+          isLoading: true,
           breadcrumb: [
               { name: "Admin", path: "/admin" },
               { name: "Pages", path: "/admin/pages" },
@@ -151,8 +157,8 @@ export default {
               { label: 'No', value: 0 }
           ],
           pageTypeOptions: [
-              { label: 'Standard', value: 'standard' },
-              { label: 'Contact', value: 'contact' }
+              { label: 'Standard', value: 'standard', isDisabled: false },
+              { label: 'Contact', value: 'contact', isDisabled: true }
           ],
           error: {
             titleMessage: '',
@@ -163,6 +169,8 @@ export default {
       this.fetchParentPages();
       if(this.pageId!=null) {
         this.editPage(this.pageId)
+      } else {
+        this.isLoading = false; // To remove fetchparentPages loader in case no editPage
       }
     },
 
@@ -183,27 +191,30 @@ export default {
         .then((response) => {
           if(response.data.code==200) {
             const data = response.data.content;
-            console.log('data>>', data);
             this.form.parent_id = data.parent_id;
             this.form.title = data.title;
-            this.form.meta_title = data.meta_title;
-            this.form.meta_description = data.meta_description;
-            this.form.order = data.order;
-            this.form.is_parent = data.is_parent;
+            this.form.meta_title = data.meta_title??'';
+            this.form.meta_description = data.meta_description??'';
+            this.form.order = data.order??1;
+            this.form.is_parent = data.is_parent??'';
             this.form.page_type = data.page_type;
             this.form.add_to_menu = data.is_menu;
             this.form.add_to_home = data.add_to_home;
             this.form.status = data.status;
-            this.sectionList = data.sections
+            this.sectionList = data.sections;
           }
           
         })
         .catch((e) => {
           console.log('Something Wrong!', e);
         })
+        .finally(() => {
+          this.isLoading = false;
+        });
       },
       handleSaveOrUpdatePage() {
         if(this.validateForm()) {
+          this.isLoading = true;
           const formData = new FormData();
 
           // Append static fields
@@ -239,28 +250,42 @@ export default {
           if (this.pageId) {
               updatePage(this.pageId, formData)
               .then((response) => {
-                  if (response.data.code == 200) {
-                      this.$router.push('/admin/pages');
-                  } else {
-                      alert(response.data.message);
-                  }
+                  const responseData = response.data;
+                  const alertTitle = responseData.code == 200 ? 'Success:' : 'Error:';
+                  this.$router.push('/admin/pages').then(() => {
+                      EventBus.$emit('alert', {
+                          title: alertTitle,
+                          message: responseData.message,
+                          type: responseData.status
+                      });
+                  });
               })
               .catch(err => {
                   console.error('Failed to update page:', err);
                   alert(err);
+              })
+              .finally(() => {
+                this.isLoading = false;
               });
           } else {
               savePage(formData)
               .then((response) => {
-                  if (response.data.code == 200) {
-                      this.$router.push('/admin/pages');
-                  } else {
-                      alert(response.data.message);
-                  }
+                const responseData = response.data;
+                const alertTitle = responseData.code == 200 ? 'Success:' : 'Error:';
+                this.$router.push('/admin/pages').then(() => {
+                    EventBus.$emit('alert', {
+                        title: alertTitle,
+                        message: responseData.message,
+                        type: responseData.status
+                    });
+                });
               })
               .catch(err => {
                   console.error('Failed to save page:', err);
                   alert(err);
+              })
+              .finally(() => {
+                this.isLoading = false;
               });
           }
         }

@@ -1,6 +1,8 @@
 <template>
   <div>
     <Breadcrumb :title="'Pages'" :breadcrumb="breadcrumb" />
+    <AlertComponent v-if="alertVisible" :title="alertTitle" :message="alertMessage" :type="alertType" @close="alertVisible = false" />
+    
     <div class="card mb-4">
       <div class="card-header d-flex align-items-center justify-content-between">
         <div>
@@ -12,7 +14,8 @@
         </div>
       </div>
 
-      <div class="card-body">
+      <LoaderComponent v-if="isLoading" />
+      <div class="card-body" v-else>
         <PageTable :pages="pages" :pagination="pagination" @page-changed="fetchPages" />
       </div>
     </div>
@@ -22,12 +25,17 @@
 <script>
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
 import PageTable from "../../components/admin/AdminPageTable.vue";
+import AlertComponent from "../../components/AlertComponent.vue";
+import LoaderComponent from "../../components/LoaderComponent.vue";
 import { getAllPages } from '@/services/page';
+import { EventBus } from '@/utils/eventBus';
 
 export default {
     components: {
         Breadcrumb,
         PageTable,
+        AlertComponent,
+        LoaderComponent
     },
     data() {
         return {
@@ -35,14 +43,24 @@ export default {
           breadcrumb: [
               { name: "Admin", path: "/admin" },
           ],
+          isLoading: false,
           pagination: {},
+          alertTitle: '',
+          alertMessage: '',
+          alertType: 'info',
+          alertVisible: false,
         };
     },
     created() {
-        this.fetchPages();
+      EventBus.$on('alert', this.showAlert);
+      this.fetchPages();
+    },
+    beforeDestroy() {
+      EventBus.$off('alert', this.showAlert);
     },
     methods: {
         fetchPages(page=1) {
+          this.isLoading = true;
           getAllPages(page)
           .then((response) => {
             const data = response.data;
@@ -61,8 +79,22 @@ export default {
           .catch(err => {
             console.error('Failed To List Page:', err);
             alert(err);
+          })
+          .finally(() => {
+            this.isLoading = false;
           });
         },
+        showAlert(payload) {
+          this.alertTitle = payload.title;
+          this.alertMessage = payload.message;
+          this.alertType = payload.type;
+          this.alertVisible = true;
+          
+          // Auto-hide after 3 seconds
+          setTimeout(() => {
+            this.alertVisible = false;
+          }, 3000);
+        }
     },
 };
 </script>
