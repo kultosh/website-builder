@@ -1,5 +1,10 @@
 <template>
   <div>
+    <div v-if="isDeleting" class="overlay-loader d-flex justify-content-center align-items-center">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Deleting...</span>
+      </div>
+    </div>
     <table class="table table-striped table-bordered" id="pagesTable">
       <thead>
         <tr>
@@ -53,6 +58,7 @@
 
 <script>
 import { deletePage } from '@/services/page';
+import { EventBus } from '@/utils/eventBus'; 
 
 export default {
   props: {
@@ -76,6 +82,7 @@ export default {
         { label: 'Created At' },
         { label: 'Actions'}
       ],
+      isDeleting: false,
     }
   },
   computed: {
@@ -104,16 +111,29 @@ export default {
       const confirmed = confirm('Are you sure?');
       if (!confirmed) return;
 
+      this.isDeleting = true;
+
       deletePage(id)
       .then((response) => {
-        if(response.data.code==200) {
-          this.$emit("page-changed", this.currentPage);
-        }
+        const responseData = response.data;
+        const alertTitle = responseData.code == 200 ? 'Success:' : 'Error:';
+        EventBus.$emit('alert', {
+          title: alertTitle,
+          message: responseData.message,
+          type: responseData.status
+        });
       })
       .catch((e) => {
-        alert('Error');
-        console.log('Error!!', e);
+        EventBus.$emit('alert', {
+          title: 'Error',
+          message: e.response?.data?.message || 'Failed to delete slider',
+          type: 'error'
+        });
       })
+      .finally(() => {
+        this.isDeleting = false;
+        this.$emit("page-changed", this.currentPage);
+      });
     }
   },
 };
@@ -122,5 +142,15 @@ export default {
 <style scoped>
 .table {
   width: 100%;
+}
+
+.overlay-loader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.6);
+  z-index: 10;
 }
 </style>

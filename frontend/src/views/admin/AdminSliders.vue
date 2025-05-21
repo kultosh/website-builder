@@ -1,6 +1,8 @@
 <template>
   <div>
     <Breadcrumb :title="'Sliders'" :breadcrumb="breadcrumb" />
+    <AlertComponent v-if="alertVisible" :title="alertTitle" :message="alertMessage" :type="alertType" @close="alertVisible = false" />
+    
     <div class="card mb-4">
       <div class="card-header d-flex align-items-center justify-content-between">
         <div>
@@ -11,8 +13,8 @@
           <router-link to="/admin/sliders/new" class="btn btn-primary">Add Slider</router-link>
         </div>
       </div>
-
-      <div class="card-body">
+      <LoaderComponent v-if="isLoading" />
+      <div class="card-body" v-else>
         <SliderTable :sliders="sliders" :pagination="pagination" @page-changed="fetchSliders" />
       </div>
     </div>
@@ -22,12 +24,18 @@
 <script>
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
 import SliderTable from "../../components/admin/AdminSliderTable.vue";
+import LoaderComponent from "../../components/LoaderComponent.vue";
+import AlertComponent from "../../components/AlertComponent.vue";
 import { getAllSliders } from '@/services/slider';
+import { EventBus } from '@/utils/eventBus';
 
+// let self;
 export default {
     components: {
         Breadcrumb,
         SliderTable,
+        LoaderComponent,
+        AlertComponent
     },
     data() {
         return {
@@ -36,13 +44,23 @@ export default {
               { name: "Admin", path: "/admin" },
           ],
           pagination: {},
+          isLoading: false,
+          alertTitle: 'success',
+          alertMessage: 'This is test',
+          alertType: 'info',
+          alertVisible: false,
         };
     },
     created() {
+        EventBus.$on('alert', this.showAlert);
         this.fetchSliders();
+    },
+    beforeDestroy() {
+      EventBus.$off('alert', this.showAlert);
     },
     methods: {
         fetchSliders(page=1) {
+          this.isLoading = true;
           getAllSliders(page)
           .then((response) => {
             const data = response.data;
@@ -61,8 +79,22 @@ export default {
           .catch(err => {
             console.error('Failed To List Page:', err);
             alert(err);
-          });
+          })
+          .finally(() => {
+            this.isLoading = false;
+          })
         },
+        showAlert(payload) {
+          this.alertTitle = payload.title;
+          this.alertMessage = payload.message;
+          this.alertType = payload.type;
+          this.alertVisible = true;
+          
+          // Auto-hide after 3 seconds
+          setTimeout(() => {
+            this.alertVisible = false;
+          }, 3000);
+        }
     },
 };
 </script>
