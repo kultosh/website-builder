@@ -43,7 +43,7 @@ export default {
           breadcrumb: [
               { name: "Admin", path: "/admin" },
           ],
-          isLoading: true,
+          isLoading: false,
           pagination: {},
           alertTitle: '',
           alertMessage: '',
@@ -60,6 +60,7 @@ export default {
     },
     methods: {
         fetchPages(page=1) {
+          this.isLoading = true;
           getAllPages(page)
           .then((response) => {
             const data = response.data;
