@@ -2,7 +2,8 @@
     <div>
         <Breadcrumb :title="'Dashboard'" :breadcrumb="breadcrumb" />
 
-        <div class="container py-4">
+        <LoaderComponent v-if="isLoading" />
+        <div class="container py-4" v-else>
             <div class="row g-4">
                 <!-- Card 1 -->
                 <div v-for="(card, index) in dashboardData" :key="index" class="col-md-3">
@@ -25,11 +26,13 @@
 
 <script>
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
+import LoaderComponent from "../../components/LoaderComponent.vue";
 import { getRecords } from '@/services/dashboard';
 
 export default {
     components: {
         Breadcrumb,
+        LoaderComponent
     },
     data() {
         return {
@@ -37,22 +40,24 @@ export default {
                 { name: "Admin", path: "/admin" },
             ],
             dashboardData: [],
+            isLoading: false,
         }
     },
     mounted() {
-        console.log('yes');
         this.dashboardRecords();
     },
     methods: {
         dashboardRecords() {
-            console.log('inside');
+            this.isLoading = true;
             getRecords()
             .then((response) => {
-                console.log('response>>', response);
                 this.dashboardData = response.data.content;
             })
             .catch((e) => {
                 console.log('Error!!', e);
+            })
+            .finally(() => {
+                this.isLoading = false;
             })
         }
     }
