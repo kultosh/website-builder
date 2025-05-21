@@ -37,8 +37,12 @@ RUN php artisan storage:link
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www/storage /var/www/bootstrap/cache
 
+# Copy the ping service script into the container
+COPY ping_service.sh /usr/local/bin/ping_service.sh
+RUN chmod +x /usr/local/bin/ping_service.sh
+
 # Expose port 8000
 EXPOSE 8000
 
-# Start Laravel using built-in server (development)
-CMD php artisan serve --host=0.0.0.0 --port=8000
+# Start Laravel and ping service in parallel
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=8000 & /usr/local/bin/ping_service.sh"]
