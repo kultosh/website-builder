@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div v-if=!isLoading>
         <Breadcrumb v-if="page && page.title" :title="page.title" :breadcrumb="breadcrumb" />
 
         <div v-if="page.is_parent==1">
@@ -11,6 +11,7 @@
             </div>
         </div>
     </div>
+    <OverlayLoader v-else :visible="isLoading" />
 </template>
 
 <script>
@@ -18,25 +19,29 @@ import StandardPageSection from "@/components/frontend/sections/StandardPageSect
 import StandardPageSectionParent from "@/components/frontend/sections/StandardPageSectionParent.vue";
 import Breadcrumb from "@/components/frontend/FrontendBreadcrumb.vue";
 import { getPageBySlug } from '@/services/frontendApi';
+import OverlayLoader from '@/components/OverlayLoaderComponent.vue';
 
 export default {
     props: ["slug"],
     components: {
         Breadcrumb,
         StandardPageSection,
-        StandardPageSectionParent
+        StandardPageSectionParent,
+        OverlayLoader
     },
 
     data() {
         return {
             breadcrumb: [],
             page: {},
-            sectionList: []
+            sectionList: [],
+            isLoading: false,
         }
     },
 
     methods: {
         async fetchPage() {
+            this.isLoading = true;
             await getPageBySlug(this.slug)
             .then((response) => {
                 const data = response.data.content;
@@ -49,6 +54,9 @@ export default {
             .catch(err => {
                 console.error('Page not found', err);
                 this.$router.replace('/');
+            })
+            .finally(() => {
+                this.isLoading = false;
             });
         },
         updateBreadcrumb(data) {

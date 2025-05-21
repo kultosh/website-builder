@@ -1,7 +1,9 @@
 <template>
   <div>
     <Breadcrumb :title="'Settings'" :breadcrumb="breadcrumb" />
-    <div class="card mb-4">
+
+    <LoaderComponent v-if="isLoading" />
+    <div class="card mb-4" v-else>
       <div class="card-header d-flex align-items-center justify-content-between">
         <div>
           <i class="fas fa-cog me-1"></i>
@@ -77,17 +79,20 @@
 
 <script>
 import Breadcrumb from "../../components/admin/AdminBreadcrumb.vue";
+import LoaderComponent from "../../components/LoaderComponent.vue";
 import { getAllSettings, updateSettings } from "@/services/setting";
 
 export default {
   components: {
     Breadcrumb,
+    LoaderComponent
   },
   data() {
     return {
       breadcrumb: [{ name: "Admin", path: "/admin" }],
       settingsForm: [],
       previewUrl: null,
+      isLoading: false,
       themesOption: [
         { text: "Primary", value: "bg-primary" },
         { text: "Secondary", value: "bg-secondary" },
@@ -118,6 +123,7 @@ export default {
         return null;
     },
     fetchSettings() {
+      this.isLoading = true;
       getAllSettings()
         .then((response) => {
           const data = response.data;
@@ -132,9 +138,13 @@ export default {
         .catch((err) => {
           console.error("Failed To List Settings:", err);
           alert(err);
-        });
+        })
+        .finally(() => {
+          this.isLoading = false;
+        })
     },
     saveSettings() {
+      this.isLoading = true;
       const formData = new FormData();
       Object.entries(this.settingsForm).forEach(([key, value]) => {
         if (value instanceof File) {
@@ -155,7 +165,10 @@ export default {
         .catch((err) => {
           console.error("Error saving settings:", err);
           alert("Error saving settings");
-        });
+        })
+        .finally(() => {
+          this.isLoading = false;
+        })
     },
   },
 };
