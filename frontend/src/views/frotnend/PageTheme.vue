@@ -39,6 +39,29 @@ export default {
         }
     },
 
+    metaInfo() {
+        const defaultTitle = "Website Builder | Create Your Perfect Site Today";
+        const defaultDescription = "Build stunning websites quickly and easily with Web Builder’s tools — no coding required";
+
+        return {
+            title: this.page.meta_title || this.page.title || defaultTitle,
+            meta: [
+            {
+                name: 'description',
+                content: this.page.meta_description || defaultDescription,
+            },
+            {
+                property: 'og:title',
+                content: this.page.meta_title || defaultTitle,
+            },
+            {
+                property: 'og:description',
+                content: this.page.meta_description || defaultDescription,
+            },
+            ]
+        };
+    },
+
     methods: {
         async fetchPage() {
             this.isLoading = true;
@@ -68,7 +91,7 @@ export default {
                     {name: data.parent_title, path: '/'+data.parent_slug}
                 );
             }
-        }
+        },
     },
 
     watch: {
