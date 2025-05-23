@@ -31,7 +31,19 @@ export default{
             parentChildPageList: [],
             sliderList: [],
             isLoading: false,
+            metaTitle: 'Welcome to Website Builder',
+            metaDescription: 'Build stunning websites quickly and easily with Web Builder’s tools — no coding required',
         }
+    },
+    metaInfo() {
+        return {
+        title: this.metaTitle,
+        meta: [
+            { name: 'description', content: this.metaDescription },
+            { property: 'og:title', content: this.metaTitle },
+            { property: 'og:description', content: this.metaDescription },
+        ],
+        };
     },
     beforeMount() {
         this.fetchSectionData();
@@ -47,6 +59,9 @@ export default{
                 const settings = JSON.parse(localStorage.getItem('appSettings')) || {};
                 const maxSlider = settings.max_slider || 10;
                 this.sliderList = data.sliders.slice(0, maxSlider);
+                // Apply meta from settings if present
+                this.metaTitle = settings.home_meta_title || this.metaTitle;
+                this.metaDescription = settings.home_meta_description || this.metaDescription;
             })
             .catch(err => {
                 console.error('Page not found', err);
