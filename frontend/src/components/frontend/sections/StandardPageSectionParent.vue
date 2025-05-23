@@ -32,7 +32,6 @@ export default{
         async fetchChildPages() {
             await getChildPages(this.pageId)
             .then((response) => {
-                console.log('ParentPageResponse>>', response);
                 this.childPageList = response.data.content;
             })
             .catch(err => {
