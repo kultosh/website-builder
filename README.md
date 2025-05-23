@@ -130,7 +130,7 @@ npm run serve
 | `POST`                                                 | `/settings`     | Updates settings using `SettingController::updateSettings`                       |
 
 ## Technologies Used
-- Frontend: Vue.js 2, Axios, Boostrap 5.3, CKEDITOR 5,
+- Frontend: Vue.js 2, Axios, Vue Router 3.6, Vue Meta 2.4, Boostrap 5.3, CKEDITOR 5
 - Backend: Laravel, Sanctum, Image Intervention
 
 ## Credentials
